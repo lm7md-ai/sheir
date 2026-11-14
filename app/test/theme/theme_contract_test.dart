@@ -79,10 +79,10 @@ void main() {
     });
 
     test('حظر letterSpacing على النصوص العربية لمنع كسر التماسك الخطي', () {
-      final verseStyle = DiwanTypography.verseStyle(color: DiwanColors.textPrimaryDark);
+      final verseStyle = DiwanTypography.verseStyle(color: DiwanColors.darkTextPrimary);
       expect(verseStyle.letterSpacing, equals(0.0));
 
-      final titleStyle = DiwanTypography.displayCartouche(color: DiwanColors.textPrimaryDark);
+      final titleStyle = DiwanTypography.displayCartouche(color: DiwanColors.darkTextPrimary);
       expect(titleStyle.letterSpacing, equals(0.0));
     });
   });

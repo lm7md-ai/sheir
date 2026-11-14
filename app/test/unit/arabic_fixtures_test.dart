@@ -53,8 +53,8 @@ void main() {
     // ٤. الإمام الشافعي - دع الأيام (الوافر)
     test('اختبارات الإمام الشافعي: دع الأيام تفعل ما تشاء', () {
       const verse = 'دَعِ الأَيَّامَ تَفْعَلُ مَا تَشَاءُ وَطِبْ نَفْساً إِذَا حَكَمَ القَضَاءُ';
-      final cloze = ClozeGenerator.generateCloze(verse);
-      expect(cloze.hiddenWord, isNotEmpty);
+      final clozeWords = ClozeGenerator.generate(text: verse, mode: ClozeMode.progressiveCloze);
+      expect(clozeWords, isNotEmpty);
 
       final card = SrsCardState.initial(4);
 
