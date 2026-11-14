@@ -1,4 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -29,6 +31,23 @@ void main() {
 
   FlutterError.onError = (details) {
     DiwanErrorBoundary.reportError(details.exception, details.stack);
+  };
+
+  PlatformDispatcher.instance.onError = (error, stack) {
+    DiwanErrorBoundary.reportError(error, stack);
+    return true;
+  };
+
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return DiwanFriendlyErrorCard(
+      title: 'طرأ تعثر في رسم هذه البطاقة',
+      message: 'تعذر على واجهة فلاتر رسم هذا الجزء من الشاشة.',
+      recoveryAction: 'يمكنك مواصلة تصفح بقية الشاشات أو استعراض السجلات.',
+      onRetry: () => DiwanErrorBoundary.clearError(),
+      onCopyReport: () {
+        Clipboard.setData(ClipboardData(text: details.toString()));
+      },
+    );
   };
 
   runApp(const ProviderScope(child: DiwanApp()));

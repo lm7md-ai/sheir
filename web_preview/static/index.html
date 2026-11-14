@@ -151,7 +151,13 @@
       <!-- قائمة القصائد الداعمة للتقطيع والتمرير الكسول -->
       <div id="libraryPoemsContainer"></div>
 
-      <!-- مؤشر التحميل الكسول للصفحة التالية -->
+      <!-- زر ومؤشر التحميل الكسول للصفحة التالية -->
+      <div style="text-align: center; margin: 16px 0;">
+        <button id="loadMorePoemsBtn" class="diwan-btn gold-btn" onclick="loadNextPageOfPoems()" style="padding: 10px 24px; font-size: 13px;">
+          ⬇️ تحميل المزيد من الأبيات (استعلام صفحي فوري &lt;15ms)
+        </button>
+      </div>
+
       <div id="libraryLoadingMore" style="display: none; text-align: center; padding: 14px;">
         <span style="color: var(--accent-gold); font-size: 13px;">جاري جلب الصفحة التالية من فهرس FTS5...</span>
       </div>
@@ -357,18 +363,27 @@
          [8] سجل العمليات والتشخيص المدمج (In-App Logs Tab)
          ========================================================================= -->
     <div id="tab-logs" class="tab-content">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
         <h2 style="font-family: var(--font-display); color: var(--accent-gold); font-size: 20px;">سجل العمليات والتشخيص (In-App Logs)</h2>
         <div style="display: flex; gap: 8px;">
-          <button class="diwan-btn gold-btn" onclick="copyServerLogs()" style="font-size: 12px; padding: 6px 12px;">📋 نسخ السجل</button>
+          <button class="diwan-btn gold-btn" onclick="shareServerLogs()" style="font-size: 12px; padding: 6px 12px;">📤 مشاركة</button>
+          <button class="diwan-btn gold-btn" onclick="copyServerLogs()" style="font-size: 12px; padding: 6px 12px;">📋 نسخ الكل</button>
           <button class="diwan-btn gold-btn" onclick="clearServerLogs()" style="font-size: 12px; padding: 6px 12px; color: var(--rec-wrong);">مسح</button>
         </div>
       </div>
 
-      <div class="diwan-card" style="padding: 10px 14px; margin-bottom: 12px;">
+      <div class="diwan-card" style="padding: 10px 14px; margin-bottom: 10px;">
         <input type="text" id="logSearchInput" placeholder="تصفية السجلات (وسم، رسالة)..." 
                style="width: 100%; background: transparent; border: none; outline: none; color: var(--text-primary); font-size: 13px;"
                oninput="filterLogs(this.value)">
+      </div>
+
+      <!-- رقاقات تصفية مستوى السجلات -->
+      <div style="display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px;">
+        <button class="meta-chip primary" onclick="filterLogsByLevel(null)" style="cursor: pointer;">الكل</button>
+        <button class="meta-chip primary" onclick="filterLogsByLevel('INFO')" style="cursor: pointer;">ℹ️ معلومات</button>
+        <button class="meta-chip gold" onclick="filterLogsByLevel('WARN')" style="cursor: pointer;">⚠️ تحذيرات</button>
+        <button class="meta-chip burgundy" onclick="filterLogsByLevel('ERROR')" style="cursor: pointer;">🛑 أخطاء</button>
       </div>
 
       <div id="logsListContainer">
@@ -456,6 +471,46 @@
       </div>
       <div class="record-btn-container" style="margin: 10px auto;">
         <div class="record-btn" onclick="this.classList.toggle('recording')">🎙</div>
+      </div>
+
+      <div class="section-title-wrap">
+        <div class="gold-accent-bar"></div>
+        <div class="section-title">٥. بطاقات الأخطاء الأدبية الفصيحة وإجراءات الاسترداد (Friendly Arabic Exceptions)</div>
+      </div>
+      <div class="diwan-card" style="margin-bottom: 12px; border-right: 4px solid var(--accent-gold);">
+        <div style="font-weight: bold; color: var(--accent-gold); font-size: 15px; margin-bottom: 4px;">
+          🗄️ تعثر في فتح خزانة الدواوين (DiwanException.database)
+        </div>
+        <div style="font-size: 13px; color: var(--text-primary); margin-bottom: 6px;">
+          لم يتمكن ديوان من قراءة فهرس الأشعار. تأكد من سلامة ملف قاعدة البيانات.
+        </div>
+        <div style="font-size: 11px; color: var(--primary); font-weight: bold;">
+          💡 إجراء مقترح: أعد تشغيل التطبيق أو تحقق من خيار استعادة البيانات من شاشة الإعدادات.
+        </div>
+      </div>
+
+      <div class="diwan-card" style="margin-bottom: 12px; border-right: 4px solid var(--rec-hesitation);">
+        <div style="font-weight: bold; color: var(--rec-hesitation); font-size: 15px; margin-bottom: 4px;">
+          💾 المساحة التخزينية غير كافية (DiwanException.diskSpace)
+        </div>
+        <div style="font-size: 13px; color: var(--text-primary); margin-bottom: 6px;">
+          يتطلب تحميل النموذج 85 ميغابايت، في حين أن المساحة المتبقية هي 24 ميغابايت فقط.
+        </div>
+        <div style="font-size: 11px; color: var(--primary); font-weight: bold;">
+          💡 إجراء مقترح: يُرجى تحرير بعض المساحة التخزينية على هاتفك قبل معاودة التحميل.
+        </div>
+      </div>
+
+      <div class="diwan-card" style="border-right: 4px solid var(--rec-wrong);">
+        <div style="font-weight: bold; color: var(--rec-wrong); font-size: 15px; margin-bottom: 4px;">
+          🌐 انقطاع استجلاب حزمة البيانات (DiwanException.download)
+        </div>
+        <div style="font-size: 13px; color: var(--text-primary); margin-bottom: 6px;">
+          تعثر الاتصال أثناء تحميل الملف. تم حفظ الأجزاء المحملة لاستئنافها تلقائياً.
+        </div>
+        <div style="font-size: 11px; color: var(--primary); font-weight: bold;">
+          💡 إجراء مقترح: تحقق من اتصال الإنترنت ثم اضغط على زر استئناف التحميل.
+        </div>
       </div>
     </div>
 
