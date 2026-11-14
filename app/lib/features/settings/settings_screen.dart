@@ -393,6 +393,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   textDirection: TextDirection.rtl,
                   style: DiwanTypography.uiBody(color: diwan.textPrimary, fontSize: 13),
                 ),
+                if (widget.onOpenGallery != null) ...[
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: diwan.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    onPressed: widget.onOpenGallery,
+                    icon: const Icon(Icons.palette_rounded, size: 18),
+                    label: const Text('معرض التصميم (Design Gallery)'),
+                  ),
+                ],
               ],
             ),
           ),
