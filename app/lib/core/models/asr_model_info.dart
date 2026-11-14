@@ -3,9 +3,8 @@ enum AsrModelStatus {
   unloaded,   // غير محمل في الذاكرة
   loading,    // جاري التحميل وتخصيص الموارد
   ready,      // جاهز للاستدلال الصوتي في الخلفية
-  busy,       // جاري معالجة إشارة صوتية في Isolate مستقل
   unloading,  // جاري تفريغ الذاكرة المؤقتة وإلغاء التخصيص
-  failed,     // فشل التحميل
+  error,      // خطأ في التحميل أو المعالجة
 }
 
 class AsrModelInfo {
@@ -14,6 +13,7 @@ class AsrModelInfo {
   final int diskSizeMb;
   final int ramFootprintMb;
   final String assetOrFilePath;
+  final bool isHeavy;
   final AsrModelStatus status;
   final String? lastError;
 
@@ -23,11 +23,12 @@ class AsrModelInfo {
     required this.diskSizeMb,
     required this.ramFootprintMb,
     required this.assetOrFilePath,
+    this.isHeavy = true,
     this.status = AsrModelStatus.unloaded,
     this.lastError,
   });
 
-  bool get isLoaded => status == AsrModelStatus.ready || status == AsrModelStatus.busy;
+  bool get isLoaded => status == AsrModelStatus.ready;
 
   AsrModelInfo copyWith({
     AsrModelStatus? status,
@@ -39,6 +40,7 @@ class AsrModelInfo {
       diskSizeMb: diskSizeMb,
       ramFootprintMb: ramFootprintMb,
       assetOrFilePath: assetOrFilePath,
+      isHeavy: isHeavy,
       status: status ?? this.status,
       lastError: lastError,
     );

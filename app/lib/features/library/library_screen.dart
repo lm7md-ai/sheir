@@ -140,7 +140,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           ),
           const SizedBox(height: 8),
 
-          // القائمة الكسولة عالية الكفاءة (Lazy ListView.builder)
+          // القائمة الكسولة عالية الكفاءة (Lazy ListView.builder مع RepaintBoundary و itemExtent)
           Expanded(
             child: state.displayedPoems.isEmpty
                 ? const EmptyState(
@@ -149,75 +149,87 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                   )
                 : ListView.builder(
                     controller: _scrollController,
+                    itemExtent: 140.0,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     itemCount: state.displayedPoems.length + (state.isLoadingMore ? 1 : 0),
                     itemBuilder: (ctx, idx) {
                       if (idx == state.displayedPoems.length) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 12.0),
-                          child: SkeletonList(itemCount: 1),
+                        return const RepaintBoundary(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 12.0),
+                            child: SkeletonList(itemCount: 1),
+                          ),
                         );
                       }
 
                       final p = state.displayedPoems[idx];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6.0),
-                        child: DiwanCard(
-                          onTap: () => widget.onPoemSelected?.call(p),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            textDirection: TextDirection.rtl,
-                            children: [
-                              Row(
-                                textDirection: TextDirection.rtl,
-                                children: [
-                                  Text(
-                                    p.title,
-                                    style: DiwanTypography.displayCartouche(
-                                      color: diwan.accentGold,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                    decoration: BoxDecoration(
-                                      color: diwan.surfaceElevated,
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(color: diwan.borderGold.withOpacity(0.4)),
-                                    ),
-                                    child: Text(
-                                      '${p.verseCount} أبيات',
-                                      style: DiwanTypography.uiNumber(
+                      return RepaintBoundary(
+                        key: ValueKey('poem_${p.id}'),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6.0),
+                          child: DiwanCard(
+                            onTap: () => widget.onPoemSelected?.call(p),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              textDirection: TextDirection.rtl,
+                              children: [
+                                Row(
+                                  textDirection: TextDirection.rtl,
+                                  children: [
+                                    Text(
+                                      p.title,
+                                      style: DiwanTypography.displayCartouche(
                                         color: diwan.accentGold,
-                                        fontSize: 11,
+                                        fontSize: 18,
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'الشاعر: ${p.poetName}',
-                                textDirection: TextDirection.rtl,
-                                style: DiwanTypography.uiBody(
-                                  color: diwan.textPrimary,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
+                                    const Spacer(),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: diwan.surfaceElevated,
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(color: diwan.borderGold.withOpacity(0.4)),
+                                      ),
+                                      child: Text(
+                                        '${p.verseCount} أبيات',
+                                        style: DiwanTypography.uiNumber(
+                                          color: diwan.accentGold,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              const SizedBox(height: 10),
-                              Row(
-                                textDirection: TextDirection.rtl,
-                                children: [
-                                  _buildTag(p.era, diwan.primary, diwan),
-                                  const SizedBox(width: 6),
-                                  _buildTag('بحر ${p.meterName}', diwan.accentGold, diwan),
-                                  const SizedBox(width: 6),
-                                  _buildTag('روي: ${p.rawiy}', diwan.secondaryBurgundy, diwan),
-                                ],
-                              ),
-                            ],
+                                const SizedBox(height: 6),
+                                Text(
+                                  'الشاعر: ${p.poetName}',
+                                  textDirection: TextDirection.rtl,
+                                  style: DiwanTypography.uiBody(
+                                    color: diwan.textPrimary,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  textDirection: TextDirection.rtl,
+                                  children: [
+                                    _buildTag(p.era, diwan.primary, diwan),
+                                    const SizedBox(width: 6),
+                                    _buildTag('بحر ${p.meterName}', diwan.accentGold, diwan),
+                                    const SizedBox(width: 6),
+                                    _buildTag('روي: ${p.rawiy}', diwan.secondaryBurgundy, diwan),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
                           ),
                         ),
                       );

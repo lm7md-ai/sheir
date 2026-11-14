@@ -81,17 +81,22 @@ def build_poems_db(db_path: str = "app/assets/poems.db"):
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         verse_uid TEXT UNIQUE NOT NULL,
         poem_id INTEGER NOT NULL,
+        poem_uid TEXT NOT NULL,
         position INTEGER NOT NULL,
         verse_order INTEGER NOT NULL,
         sadr TEXT NOT NULL,
         ajuz TEXT NOT NULL,
         sadr_norm TEXT NOT NULL,
         ajuz_norm TEXT NOT NULL,
+        text_norm TEXT NOT NULL,
+        poem_title TEXT NOT NULL,
+        poet_name TEXT NOT NULL,
         FOREIGN KEY (poem_id) REFERENCES poems(id)
     );
     """)
 
-    # 3. جدول البحث الفوري FTS5
+    # 3. جدول البحث الفوري FTS5 ذو المحتوى الخارجي (External-Content FTS5)
+    # مزود بحقل نصي مطبع وخالٍ من التشكيل (text_norm) وفهارس السوابق (prefix='2 3')
     cur.execute("""
     CREATE VIRTUAL TABLE verses_fts USING fts5(
         verse_uid UNINDEXED,
@@ -100,10 +105,38 @@ def build_poems_db(db_path: str = "app/assets/poems.db"):
         ajuz,
         sadr_norm,
         ajuz_norm,
+        text_norm,
         poem_title,
         poet_name,
+        content='verses',
+        content_rowid='id',
+        prefix='2 3',
         tokenize='unicode61 remove_diacritics 2'
     );
+    """)
+
+    # مشغلات التزامن الآلي لجدول المحتوى الخارجي (External-Content Triggers)
+    cur.execute("""
+    CREATE TRIGGER verses_ai AFTER INSERT ON verses BEGIN
+        INSERT INTO verses_fts(rowid, verse_uid, poem_uid, sadr, ajuz, sadr_norm, ajuz_norm, text_norm, poem_title, poet_name)
+        VALUES (new.id, new.verse_uid, new.poem_uid, new.sadr, new.ajuz, new.sadr_norm, new.ajuz_norm, new.text_norm, new.poem_title, new.poet_name);
+    END;
+    """)
+
+    cur.execute("""
+    CREATE TRIGGER verses_ad AFTER DELETE ON verses BEGIN
+        INSERT INTO verses_fts(verses_fts, rowid, verse_uid, poem_uid, sadr, ajuz, sadr_norm, ajuz_norm, text_norm, poem_title, poet_name)
+        VALUES('delete', old.id, old.verse_uid, old.poem_uid, old.sadr, old.ajuz, old.sadr_norm, old.ajuz_norm, old.text_norm, old.poem_title, old.poet_name);
+    END;
+    """)
+
+    cur.execute("""
+    CREATE TRIGGER verses_au AFTER UPDATE ON verses BEGIN
+        INSERT INTO verses_fts(verses_fts, rowid, verse_uid, poem_uid, sadr, ajuz, sadr_norm, ajuz_norm, text_norm, poem_title, poet_name)
+        VALUES('delete', old.id, old.verse_uid, old.poem_uid, old.sadr, old.ajuz, old.sadr_norm, old.ajuz_norm, old.text_norm, old.poem_title, old.poet_name);
+        INSERT INTO verses_fts(rowid, verse_uid, poem_uid, sadr, ajuz, sadr_norm, ajuz_norm, text_norm, poem_title, poet_name)
+        VALUES (new.id, new.verse_uid, new.poem_uid, new.sadr, new.ajuz, new.sadr_norm, new.ajuz_norm, new.text_norm, new.poem_title, new.poet_name);
+    END;
     """)
 
     # 4. فهارس التصفح الصفحي المفتاحي السريع لـ 100k+
@@ -267,16 +300,13 @@ def build_poems_db(db_path: str = "app/assets/poems.db"):
             sadr_norm = normalize_arabic(sadr)
             ajuz_norm = normalize_arabic(ajuz)
 
-            cur.execute("""
-            INSERT INTO verses (verse_uid, poem_id, position, verse_order, sadr, ajuz, sadr_norm, ajuz_norm)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (v_uid, poem_id, idx, idx, sadr, ajuz, sadr_norm, ajuz_norm))
+            text_norm = f"{sadr_norm} {ajuz_norm}"
+            poet_name = poets_data[p["poet_id"] - 1][1]
 
-            # إدراج في FTS5
             cur.execute("""
-            INSERT INTO verses_fts (verse_uid, poem_uid, sadr, ajuz, sadr_norm, ajuz_norm, poem_title, poet_name)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (v_uid, p["poem_uid"], sadr, ajuz, sadr_norm, ajuz_norm, p["title"], poets_data[p["poet_id"] - 1][1]))
+            INSERT INTO verses (verse_uid, poem_id, poem_uid, position, verse_order, sadr, ajuz, sadr_norm, ajuz_norm, text_norm, poem_title, poet_name)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (v_uid, poem_id, p["poem_uid"], idx, idx, sadr, ajuz, sadr_norm, ajuz_norm, text_norm, p["title"], poet_name))
 
     # تسجيل بيانات إصدار المحتوى
     cur.execute("""

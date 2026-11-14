@@ -45,22 +45,29 @@ def run_100k_benchmark():
         sadr TEXT,
         ajuz TEXT,
         sadr_norm TEXT,
-        ajuz_norm TEXT
+        ajuz_norm TEXT,
+        text_norm TEXT
+    );
+    """)
+
+    # جدول البحث الفوري FTS5 ذو المحتوى الخارجي (External-Content FTS5) مع فهارس السوابق وتجريد التشكيل
+    cur.execute("""
+    CREATE VIRTUAL TABLE verses_fts USING fts5(
+        sadr,
+        ajuz,
+        text_norm,
+        content='verses',
+        content_rowid='id',
+        prefix='2 3',
+        tokenize='unicode61 remove_diacritics 2'
     );
     """)
 
     cur.execute("""
-    CREATE VIRTUAL TABLE verses_fts USING fts5(
-        verse_uid UNINDEXED,
-        poem_uid UNINDEXED,
-        sadr,
-        ajuz,
-        sadr_norm,
-        ajuz_norm,
-        poem_title,
-        poet_name,
-        tokenize='unicode61 remove_diacritics 2'
-    );
+    CREATE TRIGGER verses_ai AFTER INSERT ON verses BEGIN
+        INSERT INTO verses_fts(rowid, sadr, ajuz, text_norm)
+        VALUES (new.id, new.sadr, new.ajuz, new.text_norm);
+    END;
     """)
 
     # الفهارس الصارمة لبوابة الجودة 4
@@ -100,16 +107,14 @@ def run_100k_benchmark():
     ]
 
     verses_batch = []
-    fts_batch = []
     for v_id in range(1, 10001):
         sadr, ajuz = sample_verses[v_id % len(sample_verses)]
         sadr_norm = normalize_arabic(sadr)
         ajuz_norm = normalize_arabic(ajuz)
-        verses_batch.append((v_id, v_id, 1, sadr, ajuz, sadr_norm, ajuz_norm))
-        fts_batch.append((f"verse_{v_id}", f"poem_{v_id}", sadr, ajuz, sadr_norm, ajuz_norm, f"قصيدة {v_id}", "المتنبي"))
+        text_norm = f"{sadr_norm} {ajuz_norm}"
+        verses_batch.append((v_id, v_id, 1, sadr, ajuz, sadr_norm, ajuz_norm, text_norm))
 
-    cur.executemany("INSERT INTO verses VALUES (?, ?, ?, ?, ?, ?, ?)", verses_batch)
-    cur.executemany("INSERT INTO verses_fts VALUES (?, ?, ?, ?, ?, ?, ?, ?)", fts_batch)
+    cur.executemany("INSERT INTO verses VALUES (?, ?, ?, ?, ?, ?, ?, ?)", verses_batch)
     conn.commit()
 
     t_insert = time.time() - t0
@@ -165,14 +170,15 @@ def run_100k_benchmark():
     # تأكيد أن التقطيع المفتاحي ثابت ولا ينمو مع عمق الصفحات
     print("  ✓ زمن الاستعلام مستقر وثابت O(log N) ولا ينمو إطلاقاً مع عمق التمرير.")
 
-    # [4] قياس استعلام البحث الفوري FTS5 مع ترتيب bm25 (< 150ms)
+    # [4] قياس استعلام البحث الفوري FTS5 ذو المحتوى الخارجي مع ترتيب bm25 (< 150ms)
     print("\n[٤] فحص البحث الفوري FTS5 وترتيب bm25 (< 150ms):")
     q = normalize_arabic("الخيل والليل")
     t_start = time.perf_counter()
     cur.execute("""
-    SELECT verse_uid, sadr, ajuz, poem_title, bm25(verses_fts) as rank
+    SELECT v.id, v.sadr, v.ajuz, bm25(verses_fts) as rank
     FROM verses_fts
-    WHERE sadr_norm MATCH ?
+    JOIN verses v ON v.id = verses_fts.rowid
+    WHERE verses_fts MATCH ?
     ORDER BY rank
     LIMIT 50;
     """, (q,))

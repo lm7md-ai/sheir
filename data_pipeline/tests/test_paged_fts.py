@@ -54,51 +54,68 @@ def test_keyset_pagination_and_query_plan():
     assert t_first_ms < 50.0
     assert t_deep_ms < 50.0
 
-def test_paged_fts5_under_15ms():
+def test_external_content_fts5_with_bm25_and_prefix():
+    """التحقق من جدول FTS5 ذو المحتوى الخارجي مع حقل مجرد من التشكيل وفهارس السوابق وترتيب bm25 والتقطيع الصفحي"""
     conn = sqlite3.connect(":memory:")
     cur = conn.cursor()
 
     cur.execute("""
     CREATE TABLE verses (
-        id INTEGER PRIMARY KEY,
-        sadr TEXT,
-        ajuz TEXT,
-        sadr_norm TEXT,
-        ajuz_norm TEXT
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        verse_uid TEXT UNIQUE NOT NULL,
+        poem_uid TEXT NOT NULL,
+        sadr TEXT NOT NULL,
+        ajuz TEXT NOT NULL,
+        sadr_norm TEXT NOT NULL,
+        ajuz_norm TEXT NOT NULL,
+        text_norm TEXT NOT NULL
     );
     """)
 
     cur.execute("""
     CREATE VIRTUAL TABLE verses_fts USING fts5(
-        verse_id UNINDEXED,
         sadr,
         ajuz,
-        sadr_norm,
-        ajuz_norm
+        text_norm,
+        content='verses',
+        content_rowid='id',
+        prefix='2 3',
+        tokenize='unicode61 remove_diacritics 2'
     );
     """)
 
+    cur.execute("""
+    CREATE TRIGGER verses_ai AFTER INSERT ON verses BEGIN
+        INSERT INTO verses_fts(rowid, sadr, ajuz, text_norm)
+        VALUES (new.id, new.sadr, new.ajuz, new.text_norm);
+    END;
+    """)
+
     verses = []
-    fts_rows = []
-    for i in range(1, 5001):
-        sadr = f"بَيْتٌ شِعْرِيٌّ رَقْمُ {i} فِي المَجْدِ"
+    for i in range(1, 2001):
+        sadr = f"بَيْتٌ شِعْرِيٌّ رَقْمُ {i} فِي المَجْدِ وَالعُلَا"
         ajuz = f"وَقَافِيَةٌ عَذْبَةٌ تُحَاكِي النُّجُومَ {i}"
         s_norm = normalize_arabic(sadr)
         a_norm = normalize_arabic(ajuz)
-        verses.append((i, sadr, ajuz, s_norm, a_norm))
-        fts_rows.append((i, sadr, ajuz, s_norm, a_norm))
+        text_norm = f"{s_norm} {a_norm}"
+        verses.append((f"v_{i}", f"p_{i}", sadr, ajuz, s_norm, a_norm, text_norm))
 
-    cur.executemany("INSERT INTO verses VALUES (?, ?, ?, ?, ?)", verses)
-    cur.executemany("INSERT INTO verses_fts VALUES (?, ?, ?, ?, ?)", fts_rows)
+    cur.executemany("""
+    INSERT INTO verses (verse_uid, poem_uid, sadr, ajuz, sadr_norm, ajuz_norm, text_norm)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, verses)
     conn.commit()
 
-    q = normalize_arabic("المجد")
+    # استعلام مع مطابقة سوابق prefix*، وترتيب bm25، وتقطيع بـ LIMIT و OFFSET
+    q = "المجد*"
     t0 = time.perf_counter()
     cur.execute("""
-    SELECT verse_id, sadr, ajuz 
-    FROM verses_fts 
-    WHERE sadr_norm MATCH ? 
-    LIMIT 20 OFFSET 100
+    SELECT v.verse_uid, v.sadr, v.ajuz, bm25(verses_fts) AS rank
+    FROM verses_fts
+    JOIN verses v ON v.id = verses_fts.rowid
+    WHERE verses_fts MATCH ?
+    ORDER BY rank
+    LIMIT 20 OFFSET 40;
     """, (q,))
     rows = cur.fetchall()
     elapsed_ms = (time.perf_counter() - t0) * 1000.0
@@ -107,3 +124,4 @@ def test_paged_fts5_under_15ms():
 
     assert len(rows) == 20
     assert elapsed_ms < 15.0, f"Query took {elapsed_ms:.2f}ms which exceeds 15ms budget!"
+    assert rows[0][3] is not None
