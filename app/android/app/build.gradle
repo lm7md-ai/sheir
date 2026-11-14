@@ -67,7 +67,11 @@ android {
 
     buildTypes {
         release {
-            signingConfig (signingConfigs.release.storeFile != null && signingConfigs.release.storeFile.exists()) ? signingConfigs.release : signingConfigs.debug
+            if (signingConfigs.release.storeFile != null && signingConfigs.release.storeFile.exists()) {
+                signingConfig signingConfigs.release
+            } else {
+                signingConfig signingConfigs.debug
+            }
             minifyEnabled false
             shrinkResources false
         }
