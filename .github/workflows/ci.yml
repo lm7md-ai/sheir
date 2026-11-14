@@ -151,7 +151,7 @@ jobs:
         working-directory: app
         run: |
           flutter build apk --target-platform android-arm64 --release --no-tree-shake-icons > build_apk_output.txt 2>&1 || {
-            tail -n 40 build_apk_output.txt | while IFS= read -r line; do
+            grep -A 25 "\* What went wrong:" build_apk_output.txt | while IFS= read -r line; do
               echo "::error::$line"
             done
             exit 1
