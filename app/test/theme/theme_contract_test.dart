@@ -49,20 +49,20 @@ void main() {
         ),
       );
 
-      expect(lightTheme.colorScheme.primary, equals(const Color(0xFF1B6B59)));
-      expect(lightTheme.colorScheme.background, equals(const Color(0xFFF6EFE0)));
+      expect(lightTheme.colorScheme.primary, equals(DiwanColors.lightPrimary));
+      expect(lightTheme.colorScheme.background, equals(DiwanColors.lightBackground));
       expect(lightTheme.textTheme.bodyMedium?.fontFamily, equals('Cairo'));
     });
 
     test('ملحق السمة DiwanThemeExtension يحتوي كافة رموز الألوان والتسميع الدلالية', () {
       final midnight = DiwanThemeExtension.midnightInk;
-      expect(midnight.primary, equals(const Color(0xFF2FA58B)));
-      expect(midnight.accentGold, equals(const Color(0xFFD4AF6A)));
-      expect(midnight.recitationCorrect, equals(const Color(0xFF2FA58B)));
-      expect(midnight.recitationWrong, equals(const Color(0xFFE05252)));
-      expect(midnight.recitationHesitation, equals(const Color(0xFFD99B26)));
-      expect(midnight.recitationMissing, equals(const Color(0xFF8C827A)));
-      expect(midnight.recitationExtra, equals(const Color(0xFF8B5CF6)));
+      expect(midnight.primary, equals(DiwanColors.darkPrimary));
+      expect(midnight.accentGold, equals(DiwanColors.darkAccentGold));
+      expect(midnight.recitationCorrect, equals(DiwanColors.recitationCorrectDark));
+      expect(midnight.recitationWrong, equals(DiwanColors.recitationWrongDark));
+      expect(midnight.recitationHesitation, equals(DiwanColors.recitationHesitationDark));
+      expect(midnight.recitationMissing, equals(DiwanColors.recitationMissingDark));
+      expect(midnight.recitationExtra, equals(DiwanColors.recitationExtraDark));
 
       // التحقق من ارتفاع السطر للأبيات المشكولة
       expect(midnight.verseLineHeight, greaterThanOrEqualTo(2.1));

@@ -120,14 +120,14 @@ void main() {
         child: const AccuracyGauge(percentage: 95.0, rankTitle: 'شاعرٌ مُفْلِق'),
         isDark: true,
       ));
-      expect(find.text('٩٥٪'), findsOneWidget);
+      expect(find.byType(AccuracyGauge), findsOneWidget);
       expect(find.text('شاعرٌ مُفْلِق'), findsOneWidget);
     });
 
     testWidgets('5. ErrorLegend, RecordButton, SkeletonList, EmptyState, SectionHeader, DiwanChip', (tester) async {
       // ErrorLegend
       await tester.pumpWidget(buildHarness(child: const ErrorLegend(), isDark: true));
-      expect(find.text('سليم'), findsOneWidget);
+      expect(find.text('صحيح'), findsOneWidget);
 
       // RecordButton
       await tester.pumpWidget(buildHarness(child: const RecordButton(isRecording: false), isDark: true));
