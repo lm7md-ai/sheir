@@ -1,86 +1,93 @@
 import 'dart:async';
 import 'dart:io';
-import '../errors/diwan_exception.dart';
+import 'dart:math';
+import 'package:crypto/crypto.dart';
+import '../errors/app_failure.dart';
 import '../logs/diwan_logger.dart';
 import '../storage/disk_space_checker.dart';
 
-enum DownloadState { idle, checkingDisk, downloading, paused, completed, failed }
+enum DownloadStatus { idle, checkingDisk, downloading, paused, verifying, completed, failed }
 
-class DownloadProgress {
+class DownloadProgressState {
   final int bytesDownloaded;
   final int totalBytes;
   final double percentage;
-  final DownloadState state;
+  final DownloadStatus status;
   final String statusMessageArabic;
+  final AppFailure? failure;
 
-  const DownloadProgress({
+  const DownloadProgressState({
     required this.bytesDownloaded,
     required this.totalBytes,
     required this.percentage,
-    required this.state,
+    required this.status,
     required this.statusMessageArabic,
+    this.failure,
   });
 }
 
-/// خدمة التحميل القابل للاستئناف وإعادة المحاولة التلقائية (Resumable Download Service)
+/// مدير التنزيل عالي المرونة والاستئناف (Resumable Download Manager)
 class ResumableDownloader {
   final HttpClient _client;
   bool _isCancelled = false;
+  final Random _random = Random();
 
   ResumableDownloader({HttpClient? client}) : _client = client ?? HttpClient();
 
-  /// تحميل ملف كبير مع استئناف القطع السابقة (HTTP Range Header) وإعادة المحاولة 3 مرات
-  Stream<DownloadProgress> downloadFile({
+  /// تحميل ملف مع استئناف القطع (.part) والتحقق من البصمة الرقمية SHA-256 والتراجع مع الجيتر
+  Stream<DownloadProgressState> download({
     required Uri url,
-    required String savePath,
-    required int estimatedSizeMb,
+    required String targetPath,
+    required int expectedSizeBytes,
+    String? expectedSha256,
     int maxRetries = 3,
   }) async* {
     _isCancelled = false;
-    final file = File(savePath);
-    final targetDir = file.parent.path;
+    final partFilePath = '$targetPath.part';
+    final partFile = File(partFilePath);
+    final targetFile = File(targetPath);
+    final targetDir = targetFile.parent.path;
 
-    yield DownloadProgress(
+    yield DownloadProgressState(
       bytesDownloaded: 0,
-      totalBytes: estimatedSizeMb * 1024 * 1024,
+      totalBytes: expectedSizeBytes,
       percentage: 0.0,
-      state: DownloadState.checkingDisk,
-      statusMessageArabic: 'جاري فحص السعة التخزينية المتاحة...',
+      status: DownloadStatus.checkingDisk,
+      statusMessageArabic: 'جاري فحص السعة التخزينية المتاحة قبل التحميل...',
     );
 
-    // 1. التحقق من كفاية المساحة في القرص
-    try {
-      await DiskSpaceChecker.ensureSufficientSpace(
-        targetDirectory: targetDir,
-        requiredSpaceMb: estimatedSizeMb,
-      );
-    } catch (e, st) {
-      DiwanLogger.instance.error('Downloader', 'Disk space check failed', e, st);
-      yield DownloadProgress(
+    // 1. فحص السعة التخزينية (حجم الملف + هامش أمان 20%)
+    final requiredMb = (expectedSizeBytes / (1024 * 1024)).ceil();
+    final safetyMarginMb = (requiredMb * 0.2).ceil().clamp(20, 200);
+    final availableMb = await DiskSpaceChecker.getAvailableDiskSpaceMb(targetDir);
+
+    if (availableMb < (requiredMb + safetyMarginMb)) {
+      final fail = StorageFullFailure(requiredMb: requiredMb, availableMb: availableMb);
+      DiwanLogger.instance.error('Downloader', 'Insufficient disk space for download', fail);
+      yield DownloadProgressState(
         bytesDownloaded: 0,
-        totalBytes: estimatedSizeMb * 1024 * 1024,
+        totalBytes: expectedSizeBytes,
         percentage: 0.0,
-        state: DownloadState.failed,
-        statusMessageArabic: e is DiwanException ? e.messageArabic : 'المساحة غير كافية',
+        status: DownloadStatus.failed,
+        statusMessageArabic: fail.messageArabic,
+        failure: fail,
       );
       return;
     }
 
+    // 2. التحقق من وجود جزء سابق للاستئناف (.part file)
     int downloadedBytes = 0;
-    if (await file.exists()) {
-      downloadedBytes = await file.length();
-      DiwanLogger.instance.info('Downloader', 'Found partial file of size: $downloadedBytes bytes');
+    if (await partFile.exists()) {
+      downloadedBytes = await partFile.length();
+      DiwanLogger.instance.info('Downloader', 'Found existing .part file of size: $downloadedBytes bytes');
     }
 
-    int retryCount = 0;
-    while (retryCount <= maxRetries && !_isCancelled) {
+    int attempt = 0;
+    while (attempt <= maxRetries && !_isCancelled) {
       try {
-        DiwanLogger.instance.info(
-          'Downloader',
-          'Attempt ${retryCount + 1}: Downloading from $downloadedBytes bytes',
-        );
-
         final request = await _client.getUrl(url);
+
+        // إرسال ترويسة Range للاستئناف في حال توفر جزء سابق
         if (downloadedBytes > 0) {
           request.headers.add(HttpHeaders.rangeHeader, 'bytes=$downloadedBytes-');
         }
@@ -90,24 +97,24 @@ class ResumableDownloader {
         final isOk = response.statusCode == HttpStatus.ok;
 
         if (!isPartial && !isOk) {
-          throw DiwanException.download('رمز استجابة الخادم غير متوقع: ${response.statusCode}');
+          throw NetworkFailure(details: 'رمز استجابة الخادم: ${response.statusCode}');
         }
 
-        int totalBytes = response.contentLength;
-        if (isPartial) {
-          totalBytes += downloadedBytes;
-        }
+        int totalContent = response.contentLength;
+        if (isPartial) totalContent += downloadedBytes;
+        if (totalContent <= 0) totalContent = expectedSizeBytes;
 
-        final sink = file.openWrite(mode: isPartial ? FileMode.append : FileMode.write);
+        final sink = partFile.openWrite(mode: isPartial ? FileMode.append : FileMode.write);
 
         await for (final chunk in response) {
           if (_isCancelled) {
+            await sink.flush();
             await sink.close();
-            yield DownloadProgress(
+            yield DownloadProgressState(
               bytesDownloaded: downloadedBytes,
-              totalBytes: totalBytes,
-              percentage: (downloadedBytes / (totalBytes > 0 ? totalBytes : 1) * 100),
-              state: DownloadState.paused,
+              totalBytes: totalContent,
+              percentage: (downloadedBytes / totalContent * 100),
+              status: DownloadStatus.paused,
               statusMessageArabic: 'تم إيقاف التحميل مؤقتاً',
             );
             return;
@@ -115,13 +122,13 @@ class ResumableDownloader {
 
           sink.add(chunk);
           downloadedBytes += chunk.length;
-          final pct = totalBytes > 0 ? (downloadedBytes / totalBytes * 100).clamp(0.0, 100.0) : 0.0;
+          final pct = (downloadedBytes / totalContent * 100).clamp(0.0, 100.0);
 
-          yield DownloadProgress(
+          yield DownloadProgressState(
             bytesDownloaded: downloadedBytes,
-            totalBytes: totalBytes,
+            totalBytes: totalContent,
             percentage: pct,
-            state: DownloadState.downloading,
+            status: DownloadStatus.downloading,
             statusMessageArabic: 'جاري التحميل: ${pct.toStringAsFixed(1)}%',
           );
         }
@@ -129,36 +136,60 @@ class ResumableDownloader {
         await sink.flush();
         await sink.close();
 
-        DiwanLogger.instance.info('Downloader', 'Download successfully finished: $savePath');
-        yield DownloadProgress(
-          bytesDownloaded: downloadedBytes,
-          totalBytes: totalBytes,
+        // 3. التحقق من البصمة الرقمية (SHA-256 Verification)
+        if (expectedSha256 != null && expectedSha256.isNotEmpty) {
+          yield DownloadProgressState(
+            bytesDownloaded: downloadedBytes,
+            totalBytes: totalContent,
+            percentage: 100.0,
+            status: DownloadStatus.verifying,
+            statusMessageArabic: 'جاري التحقق من سلامة البصمة الرقمية...',
+          );
+
+          final fileBytes = await partFile.readAsBytes();
+          final actualHash = sha256.convert(fileBytes).toString();
+          if (actualHash != expectedSha256) {
+            await partFile.delete(); // حذف الملف التالف فوراً
+            throw const ChecksumFailure();
+          }
+        }
+
+        // 4. الاستبدال والتسمية الذرية (Atomic Rename on Success)
+        if (await targetFile.exists()) {
+          await targetFile.delete();
+        }
+        await partFile.rename(targetPath);
+
+        DiwanLogger.instance.info('Downloader', 'Download successfully completed and verified: $targetPath');
+        yield const DownloadProgressState(
+          bytesDownloaded: 100,
+          totalBytes: 100,
           percentage: 100.0,
-          state: DownloadState.completed,
-          statusMessageArabic: 'اكتمل التحميل بنجاح!',
+          status: DownloadStatus.completed,
+          statusMessageArabic: 'اكتمل التنزيل والتحقق بنجاح تام!',
         );
         return;
       } catch (e, st) {
-        retryCount++;
-        DiwanLogger.instance.warn(
-          'Downloader',
-          'Download error on attempt $retryCount: $e. Waiting before retry...',
-        );
+        attempt++;
+        DiwanLogger.instance.warn('Downloader', 'Download attempt $attempt failed: $e');
 
-        if (retryCount > maxRetries) {
-          DiwanLogger.instance.error('Downloader', 'Max retries exceeded', e, st);
-          yield DownloadProgress(
+        if (attempt > maxRetries || _isCancelled) {
+          final fail = e is AppFailure ? e : NetworkFailure(details: e.toString());
+          yield DownloadProgressState(
             bytesDownloaded: downloadedBytes,
-            totalBytes: estimatedSizeMb * 1024 * 1024,
-            percentage: 0.0,
-            state: DownloadState.failed,
-            statusMessageArabic: 'تعذر إتمام التحميل بعد عدة محاولات، اضغط لمعاودة الاستئناف.',
+            totalBytes: expectedSizeBytes,
+            percentage: (downloadedBytes / (expectedSizeBytes > 0 ? expectedSizeBytes : 1) * 100),
+            status: DownloadStatus.failed,
+            statusMessageArabic: fail.messageArabic,
+            failure: fail,
           );
           return;
         }
 
-        // انتظار تصاعدي (Exponential Backoff: 1s, 2s, 4s)
-        await Future.delayed(Duration(seconds: 1 << (retryCount - 1)));
+        // تراجع أسي مع جيتر (Exponential Backoff with Jitter: 1s, 2s, 4s + random ms)
+        final baseSeconds = 1 << (attempt - 1);
+        final jitterMs = _random.nextInt(300);
+        await Future.delayed(Duration(milliseconds: (baseSeconds * 1000) + jitterMs));
       }
     }
   }
