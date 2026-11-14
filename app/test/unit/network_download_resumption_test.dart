@@ -140,15 +140,16 @@ void main() {
       await logDir.create(recursive: true);
 
       final rotatingLogger = RotatingFileLogger(
-        logDirectoryPath: logDir.path,
-        maxFileSizeBytes: 10 * 1024,
+        directoryPath: logDir.path,
+        maxFileSize: 10 * 1024,
       );
+      await rotatingLogger.init();
 
       // تسجيل خطأ استثنائي عالمي
       try {
         throw const StorageFullFailure(requiredMb: 100, availableMb: 10);
       } catch (e, st) {
-        rotatingLogger.log(LogLevel.error, 'GlobalErrorHandler', 'Caught uncaught exception in pipeline', e, st);
+        await rotatingLogger.log('ERROR', 'GlobalErrorHandler', 'Caught uncaught exception in pipeline: $e', st.toString());
       }
 
       final activeLogFile = File(rotatingLogger.currentLogFilePath);

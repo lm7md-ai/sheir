@@ -12,6 +12,8 @@ class RotatingFileLogger {
   final String appVersion;
   final String deviceInfo;
 
+  String get currentLogFilePath => '$directoryPath/diwan_log_$_currentFileIndex.log';
+
   RotatingFileLogger({
     required this.directoryPath,
     this.maxFileSize = 2 * 1024 * 1024, // 2 MB

@@ -16,7 +16,7 @@ void main() {
       userDbPath = '${tempDir.path}/user.db';
 
       // كتابة ملفات أولية صالحة
-      final headerBytes = utf8.encode('SQLite format 3\x00' + 'x' * 120);
+      final headerBytes = utf8.encode('SQLite format 3\x00${'x' * 120}');
       await File(poemsDbPath).writeAsBytes(headerBytes);
       await File(userDbPath).writeAsBytes(headerBytes);
 
