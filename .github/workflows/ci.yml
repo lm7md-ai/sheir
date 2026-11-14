@@ -27,11 +27,19 @@ jobs:
       - name: تثبيت التبعيات (Install Dependencies)
         run: |
           python -m pip install --upgrade pip
-          pip install pytest
+          pip install -r requirements.txt
 
-      - name: تشغيل اختبارات FTS5 والبيانات
+      - name: فحص المعمارية النظيفة وحظر المظهر الافتراضي (Architecture & Theme Linter)
+        run: |
+          python3 scripts/check_clean_architecture.py
+
+      - name: تشغيل اختبارات FTS5 وقواعد البيانات (Pytest Suite)
         run: |
           PYTHONPATH=. pytest data_pipeline/tests/ -v
+
+      - name: اختبار إجهاد 100 ألف قصيدة والتقطيع المفتاحي (100k Stress Test & Keyset Benchmark)
+        run: |
+          PYTHONPATH=. python3 data_pipeline/benchmarks/stress_test_100k.py
 
   flutter-quality-gates:
     name: بوابات الجودة والفحص (Flutter Quality Gates)
