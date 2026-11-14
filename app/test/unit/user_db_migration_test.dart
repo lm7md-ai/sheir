@@ -48,9 +48,17 @@ void main() {
     });
 
     test('(2) التحقق من وجود ودقة ملفات المخطط المصدرة (Exported Schema JSON v1, v2, v3)', () async {
-      final v1File = File('docs/schemas/user_db_v1.json');
-      final v2File = File('docs/schemas/user_db_v2.json');
-      final v3File = File('docs/schemas/user_db_v3.json');
+      File findSchema(String fileName) {
+        final f1 = File('docs/schemas/$fileName');
+        if (f1.existsSync()) return f1;
+        final f2 = File('../docs/schemas/$fileName');
+        if (f2.existsSync()) return f2;
+        return f1;
+      }
+
+      final v1File = findSchema('user_db_v1.json');
+      final v2File = findSchema('user_db_v2.json');
+      final v3File = findSchema('user_db_v3.json');
 
       expect(await v1File.exists(), isTrue);
       expect(await v2File.exists(), isTrue);

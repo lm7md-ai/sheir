@@ -93,13 +93,11 @@ class AsrModelManager {
 
   /// إلغاء عملية التحميل الجارية بأمان تام (Load Cancellation)
   void cancelLoad() {
-    if (_currentLoadedModel?.status == AsrModelStatus.loading) {
-      _isCancelled = true;
-      DiwanLogger.instance.warn('ModelManager', 'Load operation cancelled by caller.');
-      _updateStatus(_currentLoadedModel!.copyWith(status: AsrModelStatus.unloaded));
-      _currentLoadedModel = null;
-      _currentLoadCompleter?.complete();
-    }
+    _isCancelled = true;
+    _currentLoadedModel = null;
+    onModelStatusChanged?.call(null);
+    _currentLoadCompleter?.complete();
+    DiwanLogger.instance.warn('ModelManager', 'Load operation cancelled by caller.');
   }
 
   /// تحميل النموذج في الذاكرة بأمان تام مع التحقق المسبق من السعة والذاكرة وسياسة تفريغ النموذج الثقيل السابق
@@ -137,6 +135,11 @@ class AsrModelManager {
     _currentLoadCompleter = Completer<void>();
 
     try {
+      if (_isCancelled) {
+        _currentLoadedModel = null;
+        return;
+      }
+
       // 1. فحص كفاية السعة التخزينية المتاحة
       await DiskSpaceChecker.ensureSufficientSpace(
         operation: DiskOperation.download,
@@ -144,6 +147,11 @@ class AsrModelManager {
         requiredSpaceMb: targetModel.diskSizeMb,
         safetyMarginMb: 50,
       );
+
+      if (_isCancelled) {
+        _currentLoadedModel = null;
+        return;
+      }
 
       // 2. التحقق المسبق من ذاكرة الوصول العشوائي (RAM Precheck)
       final availableRamMb = simulatedAvailableRamMb ?? 512;
@@ -159,6 +167,7 @@ class AsrModelManager {
       await Future.delayed(const Duration(milliseconds: 30));
 
       if (_isCancelled) {
+        _currentLoadedModel = null;
         DiwanLogger.instance.warn('ModelManager', 'Load of $modelId was aborted due to cancellation');
         return;
       }
@@ -170,6 +179,10 @@ class AsrModelManager {
       );
       _restartIdleTimer();
     } catch (e, st) {
+      if (_isCancelled) {
+        _currentLoadedModel = null;
+        return;
+      }
       _updateStatus(targetModel.copyWith(
         status: AsrModelStatus.error,
         lastError: e.toString(),

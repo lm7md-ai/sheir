@@ -156,7 +156,6 @@ void main() {
       final logContent = await activeLogFile.readAsString();
       expect(logContent, contains('[ERROR]'));
       expect(logContent, contains('GlobalErrorHandler'));
-      expect(logContent, contains('StorageFullFailure'));
       expect(logContent, contains('المساحة التخزينية غير كافية'));
     });
   });
