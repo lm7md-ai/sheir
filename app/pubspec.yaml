@@ -49,6 +49,7 @@ flutter:
     - assets/fonts/
     - assets/icons/
     - assets/patterns/
+    - assets/licenses/
 
   fonts:
     - family: Amiri
