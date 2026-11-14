@@ -1,0 +1,58 @@
+{
+  "@@locale": "ar",
+  "appTitle": "ديوان",
+  "appSubtitle": "مخطوطة الشعر العربي الكلاسيكي والتسميع الذكي",
+  "navHome": "الرئيسية",
+  "navLibrary": "المكتبة",
+  "navTraining": "التدريب",
+  "navStats": "الإحصائيات",
+  "navSettings": "الإعدادات",
+
+  "verseOfTheDay": "بَيْتُ اليَوْم",
+  "dueForReview": "أوراد الحفظ المستحقة",
+  "dueCountLabel": "{count} بيتاً بانتظار استظهارك",
+  "@dueCountLabel": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "startReview": "ابدأ المراجعة الآن",
+  "browseByEra": "التصفح بالعصور الأدبية",
+  "browseByMeter": "البحور الشعرية الستة عشر",
+  "topPoets": "أعلام الشعراء",
+
+  "reciteAction": "تسميع الأبيات",
+  "memorizeAction": "تدريب الحفظ (SRS)",
+  "listenAction": "استمع للإلقاء",
+  "retryMistakesOnly": "أعد تسميع الأخطاء فقط",
+  "saveProgress": "حفظ النتيجة في سجل الحفظ",
+
+  "recitationListening": "ألقِ بلسانك.. ديوان ينصت إليك",
+  "recitationTapToStop": "اضغط للإيقاف وإنهاء التسميع",
+
+  "srsAgain": "نسيت",
+  "srsHard": "صعب",
+  "srsGood": "جيد",
+  "srsEasy": "سهل",
+
+  "accuracyScore": "نسبة الإتقان",
+  "rankAmir": "أمير الشعراء",
+  "rankShaer": "شاعرٌ مُفْلِق",
+  "rankNazim": "ناظمٌ مُتْقِن",
+  "rankHafiz": "حافِظٌ مُجْتَهِد",
+  "rankRawi": "راوٍ مُبْتَدِئ",
+
+  "emptyLibraryTitle": "ما زال هذا الديوان بكراً",
+  "emptyLibrarySubtitle": "اختر قصيدة من عيون الشعر العربي وابدأ مسيرة الحفظ والاستظهار.",
+
+  "themeMidnightInk": "حبر الليل (AMOLED)",
+  "themeParchment": "الرَّقّ والعاج (فاتح)",
+  "themeSepia": "السيبيا العتيقة",
+
+  "settingsTypography": "الخط والطباعة المخطوطية",
+  "settingsDialectTolerance": "تسامح مخارج الحروف واللهجات",
+  "settingsIgnoreDiacritics": "تجاهل علامات التشكيل في الفحص",
+  "settingsBackup": "النسخ الاحتياطي واستعادة البيانات",
+  "settingsLogs": "سجل العمليات والتشخيص",
+  "settingsAbout": "عن ديوان"
+}

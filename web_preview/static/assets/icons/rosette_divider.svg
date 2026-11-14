@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">
+  <defs>
+    <linearGradient id="rosetteGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E8C378"/>
+      <stop offset="100%" stop-color="#B8893B"/>
+    </linearGradient>
+  </defs>
+  <!-- 8-petal Islamic Manuscript Rosette (شمسة مزخرفة) -->
+  <g transform="translate(20,20)">
+    <circle cx="0" cy="0" r="4.5" fill="url(#rosetteGold)"/>
+    <circle cx="0" cy="0" r="1.5" fill="#0B0D10"/>
+    <!-- 8 Petals -->
+    <path d="M 0,-15 C -3,-10 -3,-5 0,-4.5 C 3,-5 3,-10 0,-15 Z" fill="url(#rosetteGold)" opacity="0.9"/>
+    <path d="M 0,15 C -3,10 -3,5 0,4.5 C 3,5 3,10 0,15 Z" fill="url(#rosetteGold)" opacity="0.9"/>
+    <path d="M -15,0 C -10,-3 -5,-3 -4.5,0 C -5,3 -10,3 -15,0 Z" fill="url(#rosetteGold)" opacity="0.9"/>
+    <path d="M 15,0 C 10,-3 5,-3 4.5,0 C 5,3 10,3 15,0 Z" fill="url(#rosetteGold)" opacity="0.9"/>
+    <!-- Diagonal petals -->
+    <path d="M -10.6,-10.6 C -8.5,-5.5 -4.5,-4.5 -3.2,-3.2 C -4.5,-4.5 -5.5,-8.5 -10.6,-10.6 Z" fill="url(#rosetteGold)" opacity="0.8"/>
+    <path d="M 10.6,-10.6 C 8.5,-5.5 4.5,-4.5 3.2,-3.2 C 4.5,-4.5 5.5,-8.5 10.6,-10.6 Z" fill="url(#rosetteGold)" opacity="0.8"/>
+    <path d="M -10.6,10.6 C -8.5,5.5 -4.5,4.5 -3.2,3.2 C -4.5,4.5 -5.5,8.5 -10.6,10.6 Z" fill="url(#rosetteGold)" opacity="0.8"/>
+    <path d="M 10.6,10.6 C 8.5,5.5 4.5,4.5 3.2,3.2 C 4.5,4.5 5.5,8.5 10.6,10.6 Z" fill="url(#rosetteGold)" opacity="0.8"/>
+    <circle cx="0" cy="0" r="16" fill="none" stroke="url(#rosetteGold)" stroke-width="0.8" stroke-dasharray="1.5,1.5" opacity="0.5"/>
+  </g>
+</svg>

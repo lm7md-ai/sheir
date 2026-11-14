@@ -1,0 +1,81 @@
+{
+  "_schemaVersion": "3.0",
+  "version": 3,
+  "tables": [
+    {
+      "name": "srs_cards",
+      "columns": [
+        {"name": "id", "type": "TEXT", "nullable": false, "primaryKey": true},
+        {"name": "verse_uid", "type": "TEXT", "nullable": false},
+        {"name": "poem_uid", "type": "TEXT", "nullable": false},
+        {"name": "stability", "type": "REAL", "nullable": false, "defaultValue": 1.0},
+        {"name": "difficulty", "type": "REAL", "nullable": false, "defaultValue": 5.0},
+        {"name": "repetitions", "type": "INTEGER", "nullable": false, "defaultValue": 0},
+        {"name": "interval_days", "type": "INTEGER", "nullable": false, "defaultValue": 0},
+        {"name": "last_reviewed", "type": "TEXT", "nullable": false},
+        {"name": "next_due", "type": "TEXT", "nullable": false},
+        {"name": "is_orphaned", "type": "INTEGER", "nullable": false, "defaultValue": 0},
+        {"name": "orphaned_status", "type": "TEXT", "nullable": false, "defaultValue": "active"}
+      ]
+    },
+    {
+      "name": "progress",
+      "columns": [
+        {"name": "poem_uid", "type": "TEXT", "nullable": false, "primaryKey": true},
+        {"name": "memorized_verses", "type": "INTEGER", "nullable": false, "defaultValue": 0},
+        {"name": "total_verses", "type": "INTEGER", "nullable": false, "defaultValue": 0},
+        {"name": "is_completed", "type": "INTEGER", "nullable": false, "defaultValue": 0},
+        {"name": "last_interacted_at", "type": "TEXT", "nullable": false}
+      ]
+    },
+    {
+      "name": "attempts",
+      "columns": [
+        {"name": "id", "type": "INTEGER", "nullable": false, "primaryKey": true, "autoIncrement": true},
+        {"name": "verse_uid", "type": "TEXT", "nullable": false},
+        {"name": "poem_uid", "type": "TEXT", "nullable": false},
+        {"name": "accuracy", "type": "REAL", "nullable": false},
+        {"name": "rank_title", "type": "TEXT", "nullable": false},
+        {"name": "duration_seconds", "type": "INTEGER", "nullable": false, "defaultValue": 0},
+        {"name": "created_at", "type": "TEXT", "nullable": false}
+      ]
+    },
+    {
+      "name": "attempt_errors",
+      "columns": [
+        {"name": "id", "type": "INTEGER", "nullable": false, "primaryKey": true, "autoIncrement": true},
+        {"name": "attempt_id", "type": "INTEGER", "nullable": false},
+        {"name": "error_type", "type": "TEXT", "nullable": false},
+        {"name": "expected_word", "type": "TEXT", "nullable": false},
+        {"name": "heard_word", "type": "TEXT", "nullable": true},
+        {"name": "position", "type": "INTEGER", "nullable": true}
+      ]
+    },
+    {
+      "name": "favorites",
+      "columns": [
+        {"name": "id", "type": "INTEGER", "nullable": false, "primaryKey": true, "autoIncrement": true},
+        {"name": "poem_uid", "type": "TEXT", "nullable": false},
+        {"name": "verse_uid", "type": "TEXT", "nullable": true},
+        {"name": "created_at", "type": "TEXT", "nullable": false}
+      ]
+    },
+    {
+      "name": "settings",
+      "columns": [
+        {"name": "key", "type": "TEXT", "nullable": false, "primaryKey": true},
+        {"name": "value", "type": "TEXT", "nullable": false}
+      ]
+    },
+    {
+      "name": "collections",
+      "columns": [
+        {"name": "id", "type": "TEXT", "nullable": false, "primaryKey": true},
+        {"name": "name", "type": "TEXT", "nullable": false},
+        {"name": "description", "type": "TEXT", "nullable": true},
+        {"name": "poem_uids_json", "type": "TEXT", "nullable": false},
+        {"name": "created_at", "type": "TEXT", "nullable": false}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,653 @@
+/* ==========================================================================
+   ديوان (Diwan) — Luxury Arabic Manuscript Design System Stylesheet
+   ========================================================================== */
+
+@font-face {
+  font-family: 'Amiri';
+  src: url('/assets/fonts/Amiri-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Amiri';
+  src: url('/assets/fonts/Amiri-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'ArefRuqaa';
+  src: url('/assets/fonts/ArefRuqaa-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'ArefRuqaa';
+  src: url('/assets/fonts/ArefRuqaa-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Cairo';
+  src: url('/assets/fonts/Cairo-VariableFont.ttf') format('truetype');
+  font-weight: 200 900;
+  font-style: normal;
+}
+
+:root {
+  /* سمة حبر الليل (Midnight Ink) - AMOLED Default */
+  --bg: #0B0D10;
+  --surface: #14181D;
+  --surface-elevated: #1C2229;
+  --border: #262E38;
+  --border-gold: rgba(212, 175, 106, 0.45);
+  --text-primary: #EDE6D6;
+  --text-secondary: #A89F91;
+  --text-muted: #6B655B;
+  --primary: #2FA58B;
+  --accent-gold: #D4AF6A;
+  --secondary-burgundy: #9E3D4D;
+
+  --rec-correct: #2FA58B;
+  --rec-wrong: #E04848;
+  --rec-hesitation: #EAB308;
+  --rec-missing: #7D838D;
+  --rec-extra: #A855F7;
+
+  --font-poetry: 'Amiri', serif;
+  --font-display: 'ArefRuqaa', cursive;
+  --font-ui: 'Cairo', sans-serif;
+
+  --verse-size: 22px;
+  --verse-line-height: 2.2;
+}
+
+body[data-theme="parchment"] {
+  /* سمة الرَّقّ والعاج (Light Parchment) */
+  --bg: #F6EFE0;
+  --surface: #FCF8F0;
+  --surface-elevated: #FFFFFF;
+  --border: #E2D5BE;
+  --border-gold: rgba(184, 137, 59, 0.5);
+  --text-primary: #1E1A16;
+  --text-secondary: #635B50;
+  --text-muted: #91887D;
+  --primary: #0F5C4D;
+  --accent-gold: #B8893B;
+  --secondary-burgundy: #7A2E3A;
+
+  --rec-correct: #0E6E52;
+  --rec-wrong: #C22323;
+  --rec-hesitation: #9E6700;
+  --rec-missing: #5A606A;
+  --rec-extra: #7E22CE;
+}
+
+body[data-theme="sepia"] {
+  /* سمة السيبيا العتيقة (Vintage Sepia) */
+  --bg: #EDE1CB;
+  --surface: #F5EBD7;
+  --surface-elevated: #FAF3E4;
+  --border: #D6C4A6;
+  --border-gold: rgba(168, 121, 42, 0.5);
+  --text-primary: #2D241E;
+  --text-secondary: #6B5848;
+  --text-muted: #8E7A68;
+  --primary: #1A5B4C;
+  --accent-gold: #A8792A;
+  --secondary-burgundy: #7A2E3A;
+
+  --rec-correct: #146B4E;
+  --rec-wrong: #B82828;
+  --rec-hesitation: #946200;
+  --rec-missing: #5D636D;
+  --rec-extra: #7822BE;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  letter-spacing: 0 !important; /* حظر تباعد الحروف في النصوص العربية */
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  direction: rtl;
+  text-align: right;
+  background-color: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-image: url('/assets/patterns/andalusian_pattern.svg');
+  background-repeat: repeat;
+  background-size: 80px 80px;
+  background-blend-mode: overlay;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* الترويسة الرئيسية */
+header.app-header {
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-logo {
+  width: 38px;
+  height: 38px;
+  filter: drop-shadow(0 2px 6px rgba(212, 175, 106, 0.3));
+}
+
+.brand-title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: bold;
+  color: var(--accent-gold);
+  line-height: 1;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.theme-pill-select {
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-gold);
+  color: var(--accent-gold);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+}
+
+/* الحاوية الرئيسية للتطبيق */
+main.app-viewport {
+  flex: 1;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 16px 16px 88px 16px;
+}
+
+/* بطاقة ديوان الفاخرة */
+.diwan-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 16px;
+  position: relative;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.diwan-card.gold-rim {
+  border-color: var(--border-gold);
+  box-shadow: 0 8px 24px rgba(212, 175, 106, 0.08);
+}
+
+.diwan-card.clickable {
+  cursor: pointer;
+}
+
+.diwan-card.clickable:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-gold);
+}
+
+/* رأس القسم */
+.section-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 12px 0;
+}
+
+.gold-accent-bar {
+  width: 4px;
+  height: 22px;
+  background-color: var(--accent-gold);
+  border-radius: 2px;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--accent-gold);
+  font-weight: bold;
+}
+
+/* خرطوش الترويسة المخطوطي */
+.cartouche-banner {
+  background: var(--surface);
+  border: 1.5px solid var(--border-gold);
+  border-radius: 24px;
+  padding: 24px;
+  text-align: center;
+  position: relative;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+.cartouche-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  color: var(--accent-gold);
+  margin-bottom: 6px;
+}
+
+.cartouche-poet {
+  font-family: var(--font-ui);
+  font-size: 16px;
+  color: var(--text-primary);
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+.cartouche-chips {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.meta-chip {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.meta-chip.primary {
+  background: rgba(47, 165, 139, 0.15);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+
+.meta-chip.gold {
+  background: rgba(212, 175, 106, 0.15);
+  color: var(--accent-gold);
+  border: 1px solid var(--accent-gold);
+}
+
+.meta-chip.burgundy {
+  background: rgba(158, 61, 77, 0.15);
+  color: var(--secondary-burgundy);
+  border: 1px solid var(--secondary-burgundy);
+}
+
+/* عرض البيت الشعري الكلاسيكي */
+.verse-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 14px;
+}
+
+.verse-row.stacked {
+  flex-direction: column;
+  text-align: center;
+}
+
+.hemistich {
+  flex: 1;
+  font-family: var(--font-poetry);
+  font-size: var(--verse-size);
+  line-height: var(--verse-line-height);
+  color: var(--text-primary);
+}
+
+.hemistich.sadr {
+  text-align: left;
+}
+
+.hemistich.ajuz {
+  text-align: right;
+}
+
+.verse-row.stacked .hemistich {
+  text-align: center;
+}
+
+.rosette-divider {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.verse-rosette-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-gold);
+  color: var(--accent-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  box-shadow: 0 2px 8px rgba(212, 175, 106, 0.12);
+}
+
+/* رقاقات كلمات التسميع */
+.word-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-family: var(--font-poetry);
+  font-size: 20px;
+  margin: 4px;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  font-weight: 600;
+}
+
+.word-chip:hover {
+  transform: scale(1.04);
+}
+
+.word-correct {
+  color: var(--rec-correct);
+  background: rgba(47, 165, 139, 0.12);
+  border: 1px solid rgba(47, 165, 139, 0.35);
+  text-decoration: underline;
+  text-decoration-style: solid;
+}
+
+.word-wrong {
+  color: var(--rec-wrong);
+  background: rgba(224, 72, 72, 0.14);
+  border: 1px solid rgba(224, 72, 72, 0.4);
+  text-decoration: underline;
+  text-decoration-style: wavy;
+}
+
+.word-hesitation {
+  color: var(--rec-hesitation);
+  background: rgba(234, 179, 8, 0.12);
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+.word-missing {
+  color: var(--rec-missing);
+  background: rgba(125, 131, 141, 0.1);
+  border: 1px solid rgba(125, 131, 141, 0.25);
+  text-decoration: line-through;
+}
+
+.word-extra {
+  color: var(--rec-extra);
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+}
+
+/* عداد الدقة الدائري الأندلسي */
+.accuracy-gauge-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 20px auto;
+  position: relative;
+  width: 190px;
+  height: 190px;
+}
+
+.gauge-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.gauge-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.gauge-percentage {
+  font-family: var(--font-ui);
+  font-size: 38px;
+  font-weight: bold;
+  color: var(--accent-gold);
+  line-height: 1;
+}
+
+.gauge-rank {
+  font-family: var(--font-display);
+  font-size: 17px;
+  color: var(--primary);
+  margin-top: 4px;
+}
+
+/* زر اللاقط النابض */
+.record-btn-container {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  margin: 24px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.record-btn {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent-gold));
+  border: 2px solid var(--accent-gold);
+  color: #FFFFFF;
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(47, 165, 139, 0.4);
+  transition: transform 0.15s ease, background 0.3s ease;
+  z-index: 2;
+}
+
+.record-btn:active {
+  transform: scale(0.94);
+}
+
+.record-btn.recording {
+  background: linear-gradient(135deg, var(--rec-wrong), var(--secondary-burgundy));
+  box-shadow: 0 6px 24px rgba(224, 72, 72, 0.45);
+}
+
+.record-pulse-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--primary);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.recording .record-pulse-ring {
+  animation: pulseWave 1.4s infinite ease-out;
+  background: var(--rec-wrong);
+}
+
+@keyframes pulseWave {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* شريط التنقل السفلي */
+nav.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 12px 12px 12px;
+  z-index: 100;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  border: none;
+  background: none;
+  padding: 4px 8px;
+}
+
+.nav-item.active {
+  color: var(--accent-gold);
+}
+
+.nav-item svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+/* الأزرار والأشكال التفاعلية */
+.diwan-btn {
+  background: var(--primary);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 14px;
+  padding: 12px 20px;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: opacity 0.2s ease, transform 0.15s ease;
+}
+
+.diwan-btn:hover {
+  opacity: 0.92;
+}
+
+.diwan-btn.gold-btn {
+  background: var(--surface-elevated);
+  color: var(--accent-gold);
+  border: 1.2px solid var(--border-gold);
+}
+
+.diwan-btn.full-width {
+  width: 100%;
+}
+
+/* شاشات التبويب */
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* تقويم الممارسة */
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.heatmap-day {
+  aspect-ratio: 1;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.heatmap-day.active {
+  background: var(--primary);
+  color: #FFFFFF;
+  border-color: var(--accent-gold);
+  font-weight: bold;
+}
+
+/* النافذة المنبثقة لتفاصيل الكلمة */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 200;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-sheet {
+  background: var(--surface);
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  border: 1px solid var(--border-gold);
+  width: 100%;
+  max-width: 600px;
+  padding: 24px;
+  box-shadow: 0 -8px 30px rgba(0,0,0,0.4);
+}
