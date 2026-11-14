@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../srs/spaced_repetition_engine.dart';
-import '../logs/diwan_logger.dart';
+import '../../logs/diwan_logger.dart';
 
 /// بطاقة تقدم المستخدم وسجل الحفظ
 class UserProfileData {
