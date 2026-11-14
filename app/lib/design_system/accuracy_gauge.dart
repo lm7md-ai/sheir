@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../theme/theme_extension.dart';
-import '../theme/typography.dart';
+import '../core/theme/theme_extension.dart';
+import '../core/theme/typography.dart';
 
 /// عداد دقة التسميع الدائري الأندلسي المذهب (Illuminated Manuscript Accuracy Gauge)
 class AccuracyGauge extends StatefulWidget {

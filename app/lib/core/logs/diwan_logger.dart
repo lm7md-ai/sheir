@@ -54,8 +54,7 @@ class DiwanLogEntry {
 
   @override
   String toString() {
-    return '[$formattedTime] [${level.name.toUpperCase()}] [$tag] $message' +
-        (stackTrace != null ? '\n$stackTrace' : '');
+    return '[$formattedTime] [${level.name.toUpperCase()}] [$tag] $message${stackTrace != null ? '\n$stackTrace' : ''}';
   }
 }
 

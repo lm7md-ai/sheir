@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../theme/theme_extension.dart';
-import '../theme/typography.dart';
+import '../core/theme/theme_extension.dart';
+import '../core/theme/typography.dart';
 
 /// رأس قسم مخطوطي مع خط تذهيب وزر خيار اختياري
 class SectionHeader extends StatelessWidget {

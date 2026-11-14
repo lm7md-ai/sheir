@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/theme_extension.dart';
+import '../core/theme/theme_extension.dart';
 
 /// بطاقة ديوان المخطوطية الفاخرة ذات اللمسات الأندلسية والتذهيب الهادئ
 class DiwanCard extends StatelessWidget {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../theme/theme_extension.dart';
-import '../theme/typography.dart';
+import '../core/theme/theme_extension.dart';
+import '../core/theme/typography.dart';
 import 'hemistich_row.dart';
 
 /// حالة الخلو المخطوطية بعبارات أدبية فصيحة (Manuscript Empty State)

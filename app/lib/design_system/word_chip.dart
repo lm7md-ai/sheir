@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../nlp/recitation_alignment_engine.dart';
-import '../theme/theme_extension.dart';
-import '../theme/typography.dart';
+import '../core/nlp/recitation_alignment_engine.dart';
+import '../core/theme/theme_extension.dart';
+import '../core/theme/typography.dart';
 
 /// رقاقة الكلمة التفاعلية الداعمة للترميز الثنائي (Dual-Coding) وحالات التسميع الخمس
 class WordChip extends StatelessWidget {

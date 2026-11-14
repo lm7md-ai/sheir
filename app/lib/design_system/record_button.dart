@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../theme/theme_extension.dart';
+import '../core/theme/theme_extension.dart';
 
 /// زر التسجيل النابض مع موجات صوتية حية واهتزازات لمسية (Animated Pulse Record Button)
 class RecordButton extends StatefulWidget {

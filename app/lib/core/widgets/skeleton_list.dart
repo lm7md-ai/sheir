@@ -36,7 +36,6 @@ class _SkeletonListState extends State<SkeletonList> with SingleTickerProviderSt
     return AnimatedBuilder(
       animation: _shimmerController,
       builder: (context, child) {
-        final shimmerValue = _shimmerController.value;
         final baseColor = diwan.surface;
         final highlightColor = diwan.borderGold.withOpacity(0.18);
 

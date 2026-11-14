@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../theme/theme_extension.dart';
-import '../theme/typography.dart';
+import '../core/theme/theme_extension.dart';
+import '../core/theme/typography.dart';
 
 /// دليل علامات التسميع المتاح للجميع بالترميز المزدوج (Error Legend)
 class ErrorLegend extends StatelessWidget {

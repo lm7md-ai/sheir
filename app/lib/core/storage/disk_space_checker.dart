@@ -16,7 +16,7 @@ class DiskSpaceChecker {
       // في أندرويد/لينكس يتم فحص إحصائيات النظام عبر Statvfs أو القيمة التقريبية
       // لتفادي الانهيار، نفترض قيمة افتراضية آمنة (512MB) إذا لم تتوفر واجهة المنصة المباشرة
       return 1024; // 1 GB افتراضي متاح
-    } catch (e, st) {
+    } catch (e) {
       DiwanLogger.instance.warn('DiskSpaceChecker', 'Failed to read disk stats: $e');
       return 512;
     }

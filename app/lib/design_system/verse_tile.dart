@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../data/models/verse.dart';
-import '../theme/theme_extension.dart';
-import '../theme/typography.dart';
+import '../core/data/models/verse.dart';
+import '../core/theme/theme_extension.dart';
+import '../core/theme/typography.dart';
 import 'diwan_card.dart';
 import 'hemistich_row.dart';
 

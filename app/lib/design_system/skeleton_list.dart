@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/theme_extension.dart';
+import '../core/theme/theme_extension.dart';
 
 /// وميض المخطوطة العاجي لحالة التحميل (Manuscript Shimmer Skeleton)
 class SkeletonList extends StatefulWidget {

@@ -169,7 +169,7 @@ class ResumableDownloader {
           statusMessageArabic: 'اكتمل التنزيل والتحقق بنجاح تام!',
         );
         return;
-      } catch (e, st) {
+      } catch (e) {
         attempt++;
         DiwanLogger.instance.warn('Downloader', 'Download attempt $attempt failed: $e');
 

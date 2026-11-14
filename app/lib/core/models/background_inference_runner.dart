@@ -71,7 +71,7 @@ class BackgroundInferenceRunner {
       );
       return InferenceResponse(
         transcribedText: '',
-        evaluation: RecitationEvaluationResult(
+        evaluation: const RecitationEvaluationResult(
           tokens: [],
           accuracyPercentage: 0.0,
           correctCount: 0,
@@ -94,7 +94,7 @@ class BackgroundInferenceRunner {
 
     // 1. معالجة وتطبيع إشارات الصوت الخام (Acoustic Processing)
     // تجري هنا محاكاة التعرف الصوتي على عينات PCM دون لمس الـ UI thread إطلاقاً
-    final normalizedExpected = ArabicNormalizer.normalize(req.expectedVerse);
+    final _ = ArabicNormalizer.normalize(req.expectedVerse);
     
     // محاكاة تحويل الصوت إلى نص عبر النموذج
     final transcribed = req.expectedVerse; // النطق الملتقط
