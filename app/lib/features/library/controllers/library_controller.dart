@@ -72,6 +72,8 @@ class LibraryController extends StateNotifier<LibraryState> {
   final IPagedPoemRepository _poemRepo;
   final List<Poem> _allSeedPoems;
 
+  IPagedPoemRepository get poemRepo => _poemRepo;
+
   LibraryController({
     required IPagedPoemRepository poemRepo,
     required List<Poem> seedPoems,
