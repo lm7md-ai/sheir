@@ -73,7 +73,9 @@ jobs:
 
       - name: جلب الحزم (Flutter Pub Get)
         working-directory: app
-        run: flutter pub get
+        run: |
+          (cd packages/diwan_core && dart pub get)
+          flutter pub get
 
       - name: التحليل البرمجي الصارم (Flutter Analyze - Zero Warnings)
         working-directory: app

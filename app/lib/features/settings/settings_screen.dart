@@ -257,7 +257,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   leading: Icon(Icons.notifications_active_rounded, color: diwan.accentGold),
                   title: Text('التذكير الصباحي (بعد صلاة الفجر)', style: DiwanTypography.uiTitle(color: diwan.textPrimary, fontSize: 14)),
                   trailing: Text(
-                    '${_settings.morningReminderTime.format(context)}',
+                    _settings.morningReminderTime.format(context),
                     style: DiwanTypography.uiNumber(color: diwan.accentGold, fontSize: 14),
                   ),
                   onTap: () async {
@@ -270,7 +270,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   leading: Icon(Icons.nightlight_round, color: diwan.secondaryBurgundy),
                   title: Text('التذكير المسائي (ورد المساء)', style: DiwanTypography.uiTitle(color: diwan.textPrimary, fontSize: 14)),
                   trailing: Text(
-                    '${_settings.eveningReminderTime.format(context)}',
+                    _settings.eveningReminderTime.format(context),
                     style: DiwanTypography.uiNumber(color: diwan.accentGold, fontSize: 14),
                   ),
                   onTap: () async {
