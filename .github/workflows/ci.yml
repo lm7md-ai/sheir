@@ -89,7 +89,16 @@ jobs:
 
       - name: تشغيل الاختبارات الأحادية واختبارات المكونات (Flutter Test)
         working-directory: app
-        run: flutter test --coverage
+        run: |
+          flutter test --coverage > test_output.txt 2>&1 || {
+            grep -E "EXCEPTION|Error|FAIL|failed" test_output.txt | head -n 30 | while IFS= read -r line; do
+              echo "::error::$line"
+            done
+            tail -n 30 test_output.txt | while IFS= read -r line; do
+              echo "::error::$line"
+            done
+            exit 1
+          }
 
       - name: رفع تقرير التغطية
         uses: actions/upload-artifact@v4
