@@ -423,6 +423,43 @@
         </div>
       </div>
 
+      <!-- محاكي إدارة ذاكرة النماذج والاستدلال في الخلفية -->
+      <div class="section-title-wrap">
+        <div class="gold-accent-bar"></div>
+        <div class="section-title">إدارة ذاكرة النماذج والاستدلال خارج خيط الواجهة (Off-UI Isolate)</div>
+      </div>
+      <div class="diwan-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div>
+            <div style="font-weight: bold; font-size: 14px; color: var(--accent-gold);">إدارة دورة حياة الذاكرة (RAM Lifecycle)</div>
+            <div style="font-size: 11px; color: var(--text-secondary);">حظر استنزاف الرام (OOM Protection) وحظر الاستدلال على UI Isolate</div>
+          </div>
+          <span id="modelStatusBadge" class="meta-chip gold">غير محمل (Unloaded)</span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 12px; background: var(--surface-elevated); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);">
+          <span>الذاكرة المحجوزة: <strong id="modelRamFootprintLabel" style="color: var(--primary);">0 MB</strong></span>
+          <span>معدل إطارات الواجهة: <strong style="color: var(--primary);">120 FPS (مستقر)</strong></span>
+          <span id="modelIdleCountdown" style="color: var(--text-muted);">مؤقت الخمول: متوقف</span>
+        </div>
+
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button id="btnLoadModel" class="diwan-btn gold-btn" onclick="simulateLoadModel()" style="font-size: 12px; padding: 6px 14px;">
+            📥 تحميل النموذج في الذاكرة
+          </button>
+          <button id="btnUnloadModel" class="diwan-btn gold-btn" onclick="simulateUnloadModel()" disabled style="font-size: 12px; padding: 6px 14px; color: var(--rec-wrong);">
+            🗑️ تفريغ الذاكرة فوراً (Safe Unload)
+          </button>
+          <button id="btnRunInference" class="diwan-btn" onclick="simulateRunIsolateInference()" disabled style="font-size: 12px; padding: 6px 14px;">
+            ⚡ تشغيل استدلال في Background Isolate
+          </button>
+        </div>
+
+        <div id="isolateInferenceStatus" style="font-size: 11px; color: var(--text-secondary); margin-top: 10px; display: none;">
+          جاري المعالجة الصوتية في خيط خلفي مستقل دون لمس خيط الواجهة...
+        </div>
+      </div>
+
       <div class="section-title-wrap">
         <div class="gold-accent-bar"></div>
         <div class="section-title">١. خرطوش الترويسة المخطوطي (CartoucheHeader)</div>

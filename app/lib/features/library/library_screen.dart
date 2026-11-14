@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/data/models/poem.dart';
-import '../../core/logs/diwan_logger.dart';
-import '../../core/nlp/arabic_normalizer.dart';
 import '../../core/theme/theme_extension.dart';
 import '../../core/theme/typography.dart';
 import '../../core/widgets/diwan_card.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/skeleton_list.dart';
+import 'controllers/library_controller.dart';
 
 /// شاشة خزانة الدواوين مع دعم التمرير الكسول اللانهائي (Lazy Infinite Scrolling)
-/// وقوائم مفهرسة تدعم أكثر من 100,000 قصيدة دون أي تحميل كامل للجداول (Zero Jank)
-class LibraryScreen extends StatefulWidget {
+/// تلتزم بالمعمارية النظيفة وعزل منطق الأعمال تماماً عن الواجهة عبر Riverpod Controller
+class LibraryScreen extends ConsumerStatefulWidget {
   final List<Poem> poems;
   final Function(Poem poem)? onPoemSelected;
 
@@ -21,19 +21,12 @@ class LibraryScreen extends StatefulWidget {
   });
 
   @override
-  State<LibraryScreen> createState() => _LibraryScreenState();
+  ConsumerState<LibraryScreen> createState() => _LibraryScreenState();
 }
 
-class _LibraryScreenState extends State<LibraryScreen> {
+class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-
-  String _selectedEra = 'الكل';
-  String _searchQuery = '';
-  int _currentPage = 1;
-  static const int _pageSize = 15;
-  bool _isLoadingMore = false;
-  bool _hasMoreItems = true;
 
   @override
   void initState() {
@@ -51,56 +44,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   void _onScroll() {
     if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
-      if (!_isLoadingMore && _hasMoreItems) {
-        _loadMoreItems();
-      }
+      ref.read(libraryControllerProvider(widget.poems).notifier).loadNextPage();
     }
-  }
-
-  void _loadMoreItems() {
-    setState(() => _isLoadingMore = true);
-    DiwanLogger.instance.debug('LibraryScreen', 'Loading page ${_currentPage + 1}...');
-
-    // محاكاة جلب صفحة جديدة من قاعدة البيانات عبر FTS5 والفهارس
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) {
-        setState(() {
-          _currentPage++;
-          _isLoadingMore = false;
-          // إذا وصلنا للحد الأقصى
-          if (_currentPage >= 4) {
-            _hasMoreItems = false;
-          }
-        });
-      }
-    });
-  }
-
-  List<Poem> get _filteredPoems {
-    final filtered = widget.poems.where((p) {
-      if (_selectedEra != 'الكل' && p.era != _selectedEra) return false;
-
-      if (_searchQuery.trim().isEmpty) return true;
-
-      final normQuery = ArabicNormalizer.normalize(_searchQuery);
-      final normTitle = ArabicNormalizer.normalize(p.title);
-      final normPoet = ArabicNormalizer.normalize(p.poetName);
-      final normTheme = ArabicNormalizer.normalize(p.theme);
-
-      return normTitle.contains(normQuery) ||
-          normPoet.contains(normQuery) ||
-          normTheme.contains(normQuery);
-    }).toList();
-
-    // تطبيق التقطيع الصفحي (Paged Slice)
-    final limit = _currentPage * _pageSize;
-    return filtered.take(limit).toList();
   }
 
   @override
   Widget build(BuildContext context) {
     final diwan = context.diwan;
-    final results = _filteredPoems;
+    final state = ref.watch(libraryControllerProvider(widget.poems));
+    final controller = ref.read(libraryControllerProvider(widget.poems).notifier);
 
     return Scaffold(
       backgroundColor: diwan.background,
@@ -115,40 +67,45 @@ class _LibraryScreenState extends State<LibraryScreen> {
           ),
         ),
         centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: diwan.surfaceElevated,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: diwan.borderGold.withOpacity(0.3)),
+                ),
+                child: Text(
+                  '${state.queryDurationMs}ms (<15ms)',
+                  style: TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 10,
+                    color: diwan.accentGold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [
-          // شريط البحث اللحظي المفهرس FTS5
+          // شريط البحث المباشر
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: TextField(
               controller: _searchController,
               textDirection: TextDirection.rtl,
-              onChanged: (val) {
-                setState(() {
-                  _searchQuery = val;
-                  _currentPage = 1;
-                  _hasMoreItems = true;
-                });
-              },
-              style: DiwanTypography.uiBody(color: diwan.textPrimary, fontSize: 15),
+              onChanged: (val) => controller.updateSearchQuery(val),
+              style: DiwanTypography.uiBody(color: diwan.textPrimary),
               decoration: InputDecoration(
-                hintText: 'ابحث في أكثر من 100k بيت شعري فصيح...',
+                hintText: 'ابحث عن بيت، شاعر، عصر، أو قافية...',
                 hintTextDirection: TextDirection.rtl,
-                hintStyle: DiwanTypography.uiBody(color: diwan.textMuted, fontSize: 14),
+                hintStyle: DiwanTypography.uiBody(color: diwan.textMuted),
                 prefixIcon: Icon(Icons.search_rounded, color: diwan.accentGold),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(Icons.clear_rounded, color: diwan.textMuted),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() {
-                            _searchQuery = '';
-                            _currentPage = 1;
-                          });
-                        },
-                      )
-                    : null,
                 filled: true,
                 fillColor: diwan.surface,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -162,42 +119,22 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: diwan.accentGold, width: 1.4),
+                  borderSide: BorderSide(color: diwan.accentGold, width: 1.5),
                 ),
               ),
             ),
           ),
 
-          // خيارات التصفية السريعة بالعصور
+          // شريط تصفية العصور الأدبية
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: Row(
               children: [
-                _buildFilterChip('الكل', _selectedEra == 'الكل', () {
-                  setState(() {
-                    _selectedEra = 'الكل';
-                    _currentPage = 1;
-                  });
-                }, diwan),
-                _buildFilterChip('الجاهلي', _selectedEra == 'الجاهلي', () {
-                  setState(() {
-                    _selectedEra = 'الجاهلي';
-                    _currentPage = 1;
-                  });
-                }, diwan),
-                _buildFilterChip('العباسي', _selectedEra == 'العباسي', () {
-                  setState(() {
-                    _selectedEra = 'العباسي';
-                    _currentPage = 1;
-                  });
-                }, diwan),
-                _buildFilterChip('الحديث', _selectedEra == 'الحديث', () {
-                  setState(() {
-                    _selectedEra = 'الحديث';
-                    _currentPage = 1;
-                  });
-                }, diwan),
+                _buildFilterChip('الكل', state.selectedEra == 'الكل', () => controller.selectEra('الكل'), diwan),
+                _buildFilterChip('الجاهلي', state.selectedEra == 'الجاهلي', () => controller.selectEra('الجاهلي'), diwan),
+                _buildFilterChip('العباسي', state.selectedEra == 'العباسي', () => controller.selectEra('العباسي'), diwan),
+                _buildFilterChip('الحديث', state.selectedEra == 'الحديث', () => controller.selectEra('الحديث'), diwan),
               ],
             ),
           ),
@@ -205,7 +142,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
           // القائمة الكسولة عالية الكفاءة (Lazy ListView.builder)
           Expanded(
-            child: results.isEmpty
+            child: state.displayedPoems.isEmpty
                 ? const EmptyState(
                     title: 'لم يُعثر على قصيدة تطابق بحثك',
                     subtitle: 'تأكد من صحة الكلمات أو حاول البحث باسم الشاعر أو بحر القصيدة.',
@@ -213,16 +150,16 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 : ListView.builder(
                     controller: _scrollController,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    itemCount: results.length + (_isLoadingMore ? 1 : 0),
+                    itemCount: state.displayedPoems.length + (state.isLoadingMore ? 1 : 0),
                     itemBuilder: (ctx, idx) {
-                      if (idx == results.length) {
+                      if (idx == state.displayedPoems.length) {
                         return const Padding(
                           padding: EdgeInsets.symmetric(vertical: 12.0),
                           child: SkeletonList(itemCount: 1),
                         );
                       }
 
-                      final p = results[idx];
+                      final p = state.displayedPoems[idx];
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 6.0),
                         child: DiwanCard(
@@ -317,10 +254,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
       decoration: BoxDecoration(
         color: color.withOpacity(0.12),
         borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withOpacity(0.4)),
       ),
       child: Text(
         text,
-        style: DiwanTypography.uiBody(color: color, fontSize: 11),
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }

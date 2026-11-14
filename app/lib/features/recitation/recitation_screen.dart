@@ -1,12 +1,15 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/data/models/verse.dart';
 import '../../core/nlp/recitation_alignment_engine.dart';
 import '../../core/theme/theme_extension.dart';
 import '../../core/theme/typography.dart';
 import '../../core/widgets/record_button.dart';
+import 'controllers/recitation_controller.dart';
 
-class RecitationScreen extends StatefulWidget {
+/// شاشة أستوديو التسميع الذكي
+/// تفصل منطق المعالجة الصوتية والاستدلال في خيط الخلفية (Background Isolate) بعيداً عن الواجهة
+class RecitationScreen extends ConsumerWidget {
   final Verse verse;
   final Function(RecitationEvaluationResult result)? onEvaluationComplete;
   final VoidCallback? onCancel;
@@ -19,68 +22,20 @@ class RecitationScreen extends StatefulWidget {
   });
 
   @override
-  State<RecitationScreen> createState() => _RecitationScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final diwan = context.diwan;
+    final state = ref.watch(recitationControllerProvider);
+    final controller = ref.read(recitationControllerProvider.notifier);
 
-class _RecitationScreenState extends State<RecitationScreen> {
-  bool _isRecording = false;
-  int _activeWordIndex = 0;
-  Timer? _simulationTimer;
-  final List<String> _simulatedSpokenWords = [];
+    final expectedText = '${verse.sadr} ${verse.ajuz}';
+    final allWords = expectedText.split(RegExp(r'\s+'));
 
-  @override
-  void dispose() {
-    _simulationTimer?.cancel();
-    super.dispose();
-  }
-
-  void _toggleRecording() {
-    setState(() {
-      _isRecording = !_isRecording;
-    });
-
-    if (_isRecording) {
-      _startSimulatedRecognition();
-    } else {
-      _simulationTimer?.cancel();
-      _evaluateRecitation();
-    }
-  }
-
-  void _startSimulatedRecognition() {
-    final expectedWords = '${widget.verse.sadr} ${widget.verse.ajuz}'.split(RegExp(r'\s+'));
-    _activeWordIndex = 0;
-    _simulatedSpokenWords.clear();
-
-    _simulationTimer = Timer.periodic(const Duration(milliseconds: 700), (timer) {
-      if (_activeWordIndex < expectedWords.length) {
-        setState(() {
-          _simulatedSpokenWords.add(expectedWords[_activeWordIndex]);
-          _activeWordIndex++;
-        });
-      } else {
-        timer.cancel();
-        _toggleRecording(); // إنهاء تلقائي بعد إتمام البيت
+    // الاستماع لاكتمال التقييم
+    ref.listen<RecitationState>(recitationControllerProvider, (prev, next) {
+      if (next.evaluationResult != null && !next.isAnalyzing && !next.isRecording) {
+        onEvaluationComplete?.call(next.evaluationResult!);
       }
     });
-  }
-
-  void _evaluateRecitation() {
-    final expectedText = '${widget.verse.sadr} ${widget.verse.ajuz}';
-    final heardText = _simulatedSpokenWords.join(' ');
-
-    final result = RecitationAlignmentEngine.evaluate(
-      expectedText: expectedText,
-      heardText: heardText.isEmpty ? expectedText : heardText,
-    );
-
-    widget.onEvaluationComplete?.call(result);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final diwan = context.diwan;
-    final allWords = '${widget.verse.sadr} ${widget.verse.ajuz}'.split(RegExp(r'\s+'));
 
     return Scaffold(
       backgroundColor: diwan.background,
@@ -89,7 +44,10 @@ class _RecitationScreenState extends State<RecitationScreen> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.close_rounded, color: diwan.textSecondary),
-          onPressed: widget.onCancel ?? () => Navigator.maybePop(context),
+          onPressed: () {
+            controller.reset();
+            (onCancel ?? () => Navigator.maybePop(context))();
+          },
         ),
         title: Text(
           'أستوديو التسميع والإلقاء',
@@ -102,7 +60,7 @@ class _RecitationScreenState extends State<RecitationScreen> {
           children: [
             const Spacer(),
 
-            // نص البيت المركز عالي التباين
+            // نص البيت المركز عالي التباين مع تحديث الكلمات لحظياً
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Wrap(
@@ -113,77 +71,67 @@ class _RecitationScreenState extends State<RecitationScreen> {
                 children: allWords.asMap().entries.map((entry) {
                   final idx = entry.key;
                   final word = entry.value;
-                  final isSpoken = idx < _activeWordIndex;
-                  final isCurrent = idx == _activeWordIndex && _isRecording;
+                  final isSpoken = idx < state.activeWordIndex;
+                  final isCurrent = idx == state.activeWordIndex && state.isRecording;
 
                   Color textColor = diwan.textMuted;
                   if (isSpoken) textColor = diwan.primary;
                   if (isCurrent) textColor = diwan.accentGold;
 
                   return AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: 250),
                     style: DiwanTypography.verseStyle(
                       color: textColor,
-                      fontSize: 24,
-                      fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+                      fontSize: isCurrent ? 26 : 24,
+                      fontWeight: (isSpoken || isCurrent) ? FontWeight.bold : FontWeight.normal,
                     ),
-                    child: Text(
-                      word,
-                      textDirection: TextDirection.rtl,
-                    ),
+                    child: Text(word, textDirection: TextDirection.rtl),
                   );
                 }).toList(),
               ),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
 
-            // محاكاة الموجات الصوتية الحية (Live Simulated Waveform)
-            SizedBox(
-              height: 48,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(24, (index) {
-                  final height = _isRecording
-                      ? (12.0 + (index % 5) * 6.0)
-                      : 4.0;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    margin: const EdgeInsets.symmetric(horizontal: 2.5),
-                    width: 3.5,
-                    height: height,
-                    decoration: BoxDecoration(
-                      color: _isRecording ? diwan.primary : diwan.border,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  );
-                }),
+            // مؤشر الحالة النصي
+            Text(
+              state.statusPrompt,
+              textAlign: TextAlign.center,
+              textDirection: TextDirection.rtl,
+              style: DiwanTypography.uiBody(
+                color: state.isAnalyzing ? diwan.primary : diwan.textSecondary,
+                fontSize: 13,
               ),
             ),
+
+            if (state.isAnalyzing) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  valueColor: AlwaysStoppedAnimation<Color>(diwan.accentGold),
+                ),
+              ),
+            ],
 
             const Spacer(),
 
-            // نص التوجيه
-            Text(
-              _isRecording
-                  ? 'ديوان ينصت إلى إلقائك بخشوع..'
-                  : 'اضغط على زر اللاقط وابدأ التسميع',
-              style: DiwanTypography.uiBody(
-                color: _isRecording ? diwan.accentGold : diwan.textSecondary,
-                fontSize: 14,
+            // زر التسجيل التفاعلي
+            Padding(
+              padding: const EdgeInsets.only(bottom: 48.0),
+              child: RecordButton(
+                isRecording: state.isRecording,
+                onTap: () {
+                  if (state.isRecording) {
+                    controller.stopAndEvaluate(expectedVerse: expectedText);
+                  } else {
+                    controller.startRecording(expectedVerse: expectedText);
+                  }
+                },
               ),
             ),
-
-            const SizedBox(height: 20),
-
-            // زر التسجيل التفاعلي
-            RecordButton(
-              isRecording: _isRecording,
-              onToggle: _toggleRecording,
-              size: 80,
-            ),
-
-            const SizedBox(height: 40),
           ],
         ),
       ),

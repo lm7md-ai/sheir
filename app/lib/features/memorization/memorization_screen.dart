@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/data/models/verse.dart';
 import '../../core/srs/cloze_generator.dart';
 import '../../core/srs/spaced_repetition_engine.dart';
@@ -6,8 +7,11 @@ import '../../core/theme/theme_extension.dart';
 import '../../core/theme/typography.dart';
 import '../../core/widgets/diwan_card.dart';
 import '../../core/widgets/hemistich_row.dart';
+import 'controllers/memorization_controller.dart' as ctrl;
 
-class MemorizationScreen extends StatefulWidget {
+/// شاشة مختبر الحفظ والاستدعاء النشط
+/// تفصل منطق الأعمال (FSRS/SM-2 والإخفاء) في Controller مستقل بنمط Feature-First Clean Architecture
+class MemorizationScreen extends ConsumerWidget {
   final Verse verse;
   final Function(SrsRating rating)? onRatingSubmitted;
   final VoidCallback? onBack;
@@ -20,38 +24,37 @@ class MemorizationScreen extends StatefulWidget {
   });
 
   @override
-  State<MemorizationScreen> createState() => _MemorizationScreenState();
-}
-
-class _MemorizationScreenState extends State<MemorizationScreen> {
-  ClozeMode _currentMode = ClozeMode.hideRhymeWords;
-  final Set<int> _revealedWordIndices = {};
-  bool _showFirstLetterHint = false;
-
-  void _toggleWordReveal(int index) {
-    setState(() {
-      if (_revealedWordIndices.contains(index)) {
-        _revealedWordIndices.remove(index);
-      } else {
-        _revealedWordIndices.add(index);
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final diwan = context.diwan;
-    final card = SrsCardState.initial(widget.verse.id);
+    final state = ref.watch(ctrl.memorizationControllerProvider(verse.id));
+    final controller = ref.read(ctrl.memorizationControllerProvider(verse.id).notifier);
+
+    // تحويل نمط الإخفاء إلى نوع ClozeGenerator
+    ClozeMode genMode;
+    switch (state.mode) {
+      case ctrl.ClozeMode.full:
+        genMode = ClozeMode.full;
+        break;
+      case ctrl.ClozeMode.rhyme:
+        genMode = ClozeMode.hideRhymeWords;
+        break;
+      case ctrl.ClozeMode.ajuz:
+        genMode = ClozeMode.hideAjuz;
+        break;
+      case ctrl.ClozeMode.cloze:
+        genMode = ClozeMode.progressiveCloze;
+        break;
+    }
 
     final sadrWords = ClozeGenerator.generate(
-      text: widget.verse.sadr,
-      mode: _currentMode,
+      text: verse.sadr,
+      mode: genMode,
       isAjuz: false,
     );
 
     final ajuzWords = ClozeGenerator.generate(
-      text: widget.verse.ajuz,
-      mode: _currentMode,
+      text: verse.ajuz,
+      mode: genMode,
       isAjuz: true,
     );
 
@@ -62,7 +65,7 @@ class _MemorizationScreenState extends State<MemorizationScreen> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_forward_ios_rounded, color: diwan.accentGold),
-          onPressed: widget.onBack ?? () => Navigator.maybePop(context),
+          onPressed: onBack ?? () => Navigator.maybePop(context),
         ),
         title: Text(
           'مختبر الحفظ والاستدعاء النشط',
@@ -80,10 +83,10 @@ class _MemorizationScreenState extends State<MemorizationScreen> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  _buildModeChip('١: قراءة كاملة', ClozeMode.full, diwan),
-                  _buildModeChip('٢: إخفاء القوافي', ClozeMode.hideRhymeWords, diwan),
-                  _buildModeChip('٣: إخفاء العجز', ClozeMode.hideAjuz, diwan),
-                  _buildModeChip('٤: إخفاء تدريجي', ClozeMode.progressiveCloze, diwan),
+                  _buildModeChip('١: قراءة كاملة', ctrl.ClozeMode.full, state.mode, controller, diwan),
+                  _buildModeChip('٢: إخفاء القوافي', ctrl.ClozeMode.rhyme, state.mode, controller, diwan),
+                  _buildModeChip('٣: إخفاء العجز', ctrl.ClozeMode.ajuz, state.mode, controller, diwan),
+                  _buildModeChip('٤: إخفاء تدريجي', ctrl.ClozeMode.cloze, state.mode, controller, diwan),
                 ],
               ),
             ),
@@ -96,13 +99,11 @@ class _MemorizationScreenState extends State<MemorizationScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
               child: Column(
                 children: [
-                  // شطر الصدر
-                  _buildHemistichCloze(sadrWords, 0, diwan),
+                  _buildHemistichCloze(sadrWords, 0, state, controller, diwan),
                   const SizedBox(height: 16),
                   const RosetteDivider(size: 26),
                   const SizedBox(height: 16),
-                  // شطر العجز
-                  _buildHemistichCloze(ajuzWords, sadrWords.length, diwan),
+                  _buildHemistichCloze(ajuzWords, sadrWords.length, state, controller, diwan),
                 ],
               ),
             ),
@@ -115,40 +116,77 @@ class _MemorizationScreenState extends State<MemorizationScreen> {
               children: [
                 FilterChip(
                   label: const Text('تلميح الحرف الأول'),
-                  selected: _showFirstLetterHint,
-                  onSelected: (val) => setState(() => _showFirstLetterHint = val),
+                  selected: state.showFirstLetterHint,
+                  onSelected: (_) => controller.toggleFirstLetterHint(),
                   selectedColor: diwan.accentGold.withOpacity(0.2),
-                  backgroundColor: diwan.surface,
                   labelStyle: DiwanTypography.uiBody(
-                    color: _showFirstLetterHint ? diwan.accentGold : diwan.textSecondary,
-                    fontSize: 13,
+                    color: state.showFirstLetterHint ? diwan.accentGold : diwan.textSecondary,
+                    fontSize: 12,
                   ),
-                  avatar: Icon(Icons.lightbulb_outline_rounded,
-                      color: _showFirstLetterHint ? diwan.accentGold : diwan.textMuted, size: 18),
+                  side: BorderSide(color: state.showFirstLetterHint ? diwan.accentGold : diwan.border),
                 ),
               ],
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
 
-            // أزرار التقييم الأربعة لجدولة التكرار المتباعد (FSRS Ratings)
+            // أزرار التقييم الأربعة وفق خوارزمية FSRS/SM-2
             Text(
-              'ما مدى رسوخ استذكارك للبيت؟',
+              'ما مدى تمكنك من استذكار هذا البيت؟',
               textAlign: TextAlign.center,
-              style: DiwanTypography.uiTitle(color: diwan.textPrimary, fontSize: 15),
+              textDirection: TextDirection.rtl,
+              style: DiwanTypography.uiBody(
+                color: diwan.textSecondary,
+                fontSize: 13,
+              ),
             ),
             const SizedBox(height: 12),
 
             Row(
-              textDirection: TextDirection.rtl,
               children: [
-                _buildSrsButton('نسيت', '١٠ دقائق', diwan.recitationWrong, SrsRating.again, diwan),
+                _buildSrsButton(
+                  'نسيت',
+                  state.intervalPreviews[SrsRating.again] ?? '١٠ دقائق',
+                  diwan.recitationWrong,
+                  () {
+                    controller.submitRating(SrsRating.again);
+                    onRatingSubmitted?.call(SrsRating.again);
+                  },
+                  diwan,
+                ),
                 const SizedBox(width: 8),
-                _buildSrsButton('صعب', 'غداً', diwan.recitationHesitation, SrsRating.hard, diwan),
+                _buildSrsButton(
+                  'صعب',
+                  state.intervalPreviews[SrsRating.hard] ?? '١ يوم',
+                  diwan.recitationHesitation,
+                  () {
+                    controller.submitRating(SrsRating.hard);
+                    onRatingSubmitted?.call(SrsRating.hard);
+                  },
+                  diwan,
+                ),
                 const SizedBox(width: 8),
-                _buildSrsButton('جيد', 'يومان', diwan.primary, SrsRating.good, diwan),
+                _buildSrsButton(
+                  'جيد',
+                  state.intervalPreviews[SrsRating.good] ?? '٢ يوم',
+                  diwan.primary,
+                  () {
+                    controller.submitRating(SrsRating.good);
+                    onRatingSubmitted?.call(SrsRating.good);
+                  },
+                  diwan,
+                ),
                 const SizedBox(width: 8),
-                _buildSrsButton('سهل', '٤ أيام', diwan.accentGold, SrsRating.easy, diwan),
+                _buildSrsButton(
+                  'سهل',
+                  state.intervalPreviews[SrsRating.easy] ?? '٤ أيام',
+                  diwan.accentGold,
+                  () {
+                    controller.submitRating(SrsRating.easy);
+                    onRatingSubmitted?.call(SrsRating.easy);
+                  },
+                  diwan,
+                ),
               ],
             ),
           ],
@@ -157,7 +195,13 @@ class _MemorizationScreenState extends State<MemorizationScreen> {
     );
   }
 
-  Widget _buildHemistichCloze(List<ClozeWord> words, int offset, DiwanThemeExtension diwan) {
+  Widget _buildHemistichCloze(
+    List<ClozeWord> words,
+    int offset,
+    ctrl.MemorizationState state,
+    ctrl.MemorizationController controller,
+    DiwanThemeExtension diwan,
+  ) {
     return Wrap(
       textDirection: TextDirection.rtl,
       alignment: WrapAlignment.center,
@@ -166,11 +210,11 @@ class _MemorizationScreenState extends State<MemorizationScreen> {
       children: words.asMap().entries.map((e) {
         final globalIdx = offset + e.key;
         final word = e.value;
-        final isRevealed = _revealedWordIndices.contains(globalIdx);
+        final isRevealed = state.revealedIndices.contains(globalIdx);
 
         if (!word.isHidden || isRevealed) {
           return InkWell(
-            onTap: word.isHidden ? () => _toggleWordReveal(globalIdx) : null,
+            onTap: word.isHidden ? () => controller.toggleWordPeek(globalIdx) : null,
             child: Text(
               word.text,
               textDirection: TextDirection.rtl,
@@ -185,7 +229,7 @@ class _MemorizationScreenState extends State<MemorizationScreen> {
 
         // الكلمة المخفية (Tap-to-peek)
         return GestureDetector(
-          onTap: () => _toggleWordReveal(globalIdx),
+          onTap: () => controller.toggleWordPeek(globalIdx),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
@@ -194,7 +238,7 @@ class _MemorizationScreenState extends State<MemorizationScreen> {
               border: Border.all(color: diwan.borderGold.withOpacity(0.5)),
             ),
             child: Text(
-              _showFirstLetterHint ? '${word.firstLetterHint}....' : '.......',
+              state.showFirstLetterHint ? '${word.firstLetterHint}....' : '.......',
               style: DiwanTypography.uiBody(
                 color: diwan.accentGold,
                 fontSize: 16,
@@ -207,17 +251,20 @@ class _MemorizationScreenState extends State<MemorizationScreen> {
     );
   }
 
-  Widget _buildModeChip(String label, ClozeMode mode, DiwanThemeExtension diwan) {
-    final isSelected = _currentMode == mode;
+  Widget _buildModeChip(
+    String label,
+    ctrl.ClozeMode mode,
+    ctrl.ClozeMode currentMode,
+    ctrl.MemorizationController controller,
+    DiwanThemeExtension diwan,
+  ) {
+    final isSelected = currentMode == mode;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
       child: ChoiceChip(
         label: Text(label),
         selected: isSelected,
-        onSelected: (_) => setState(() {
-          _currentMode = mode;
-          _revealedWordIndices.clear();
-        }),
+        onSelected: (_) => controller.setClozeMode(mode),
         selectedColor: diwan.primary.withOpacity(0.2),
         backgroundColor: diwan.surface,
         labelStyle: DiwanTypography.uiBody(
@@ -234,12 +281,12 @@ class _MemorizationScreenState extends State<MemorizationScreen> {
     String label,
     String timePreview,
     Color color,
-    SrsRating rating,
+    VoidCallback onTap,
     DiwanThemeExtension diwan,
   ) {
     return Expanded(
       child: InkWell(
-        onTap: () => widget.onRatingSubmitted?.call(rating),
+        onTap: onTap,
         borderRadius: BorderRadius.circular(14),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),

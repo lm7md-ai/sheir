@@ -748,3 +748,106 @@ function simulateResumableDownload() {
     badge.innerText = `${downloadProgress}%`;
   }, 250);
 }
+
+// -------------------------------------------------------------
+// 14. Safe Model Memory Lifecycle & Off-UI Inference Simulation
+// -------------------------------------------------------------
+let modelIdleTimer = null;
+let modelIdleCountdownSec = 15;
+let modelIdleInterval = null;
+
+function simulateLoadModel() {
+  const badge = document.getElementById('modelStatusBadge');
+  const ramLabel = document.getElementById('modelRamFootprintLabel');
+  const btnLoad = document.getElementById('btnLoadModel');
+  const btnUnload = document.getElementById('btnUnloadModel');
+  const btnInference = document.getElementById('btnRunInference');
+
+  badge.className = 'meta-chip burgundy';
+  badge.innerText = 'جاري التخصيص والتحميل (Loading)...';
+  btnLoad.disabled = true;
+
+  logAction('ModelManager', 'بدء فحص السعة وتخصيص الذاكرة للنموذج (45MB)');
+
+  setTimeout(() => {
+    badge.className = 'meta-chip primary';
+    badge.innerText = 'جاهز في الذاكرة (Ready)';
+    ramLabel.innerText = '45 MB';
+    btnUnload.disabled = false;
+    btnInference.disabled = false;
+
+    logAction('ModelManager', 'تم تحميل النموذج وتثبيت مؤشر الذاكرة بأمان (45MB)');
+    startModelIdleTimer();
+  }, 500);
+}
+
+function simulateUnloadModel() {
+  const badge = document.getElementById('modelStatusBadge');
+  const ramLabel = document.getElementById('modelRamFootprintLabel');
+  const btnLoad = document.getElementById('btnLoadModel');
+  const btnUnload = document.getElementById('btnUnloadModel');
+  const btnInference = document.getElementById('btnRunInference');
+  const countdownLabel = document.getElementById('modelIdleCountdown');
+
+  clearModelIdleTimer();
+
+  badge.className = 'meta-chip gold';
+  badge.innerText = 'جاري تفريغ الذاكرة (Unloading)...';
+
+  setTimeout(() => {
+    badge.className = 'meta-chip gold';
+    badge.innerText = 'غير محمل (Unloaded)';
+    ramLabel.innerText = '0 MB';
+    btnLoad.disabled = false;
+    btnUnload.disabled = true;
+    btnInference.disabled = true;
+    countdownLabel.innerText = 'مؤقت الخمول: متوقف';
+
+    logAction('ModelManager', 'تم تفريغ النموذج وتحرير الذاكرة بالكامل (Safe Unload: 0MB)');
+  }, 300);
+}
+
+function simulateRunIsolateInference() {
+  const badge = document.getElementById('modelStatusBadge');
+  const statusDiv = document.getElementById('isolateInferenceStatus');
+
+  badge.className = 'meta-chip burgundy';
+  badge.innerText = 'استدلال في Isolate الخلفية (Off-UI)';
+  statusDiv.style.display = 'block';
+
+  logAction('InferenceRunner', 'Spawning background isolate for speech evaluation (UI Isolate Protected)');
+  startModelIdleTimer(); // إعادة ضبط مؤقت الخمول
+
+  setTimeout(() => {
+    badge.className = 'meta-chip primary';
+    badge.innerText = 'جاهز في الذاكرة (Ready)';
+    statusDiv.style.display = 'none';
+
+    logAction('InferenceRunner', 'Inference completed in 18ms without dropped frames on UI thread');
+    alert('اكتمل الاستدلال الصوتي في خيط مستقل (Off-UI Isolate) بنجاح في زمن 18ms دون أي تأثير على سلاسة الواجهة (120 FPS)!');
+  }, 700);
+}
+
+function startModelIdleTimer() {
+  clearModelIdleTimer();
+  modelIdleCountdownSec = 15;
+  const label = document.getElementById('modelIdleCountdown');
+
+  modelIdleInterval = setInterval(() => {
+    modelIdleCountdownSec--;
+    if (label) label.innerText = `تفريغ تلقائي بعد: ${modelIdleCountdownSec} ثانية`;
+
+    if (modelIdleCountdownSec <= 0) {
+      clearModelIdleTimer();
+      logAction('ModelManager', 'Idle timeout reached: auto-unloading model to preserve RAM');
+      simulateUnloadModel();
+    }
+  }, 1000);
+}
+
+function clearModelIdleTimer() {
+  if (modelIdleInterval) {
+    clearInterval(modelIdleInterval);
+    modelIdleInterval = null;
+  }
+}
