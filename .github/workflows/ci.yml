@@ -77,7 +77,13 @@ jobs:
 
       - name: التحليل البرمجي الصارم (Flutter Analyze - Zero Warnings)
         working-directory: app
-        run: flutter analyze
+        run: |
+          flutter analyze --no-pub > analyze_output.txt 2>&1 || {
+            head -n 30 analyze_output.txt | while IFS= read -r line; do
+              echo "::error::$line"
+            done
+            exit 1
+          }
 
       - name: تشغيل الاختبارات الأحادية واختبارات المكونات (Flutter Test)
         working-directory: app
