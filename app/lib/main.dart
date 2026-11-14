@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/data/models/poem.dart';
 import 'core/data/models/verse.dart';
+import 'core/errors/diwan_error_boundary.dart';
+import 'core/logs/diwan_logger.dart';
 import 'core/nlp/recitation_alignment_engine.dart';
 import 'core/theme/diwan_colors.dart';
 import 'core/theme/theme_extension.dart';
@@ -11,6 +13,7 @@ import 'core/theme/typography.dart';
 import 'features/gallery/gallery_screen.dart';
 import 'features/home/home_screen.dart';
 import 'features/library/library_screen.dart';
+import 'features/logs/logs_screen.dart';
 import 'features/memorization/memorization_screen.dart';
 import 'features/poem/poem_screen.dart';
 import 'features/recitation/recitation_screen.dart';
@@ -20,6 +23,14 @@ import 'features/stats/stats_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // تسجيل أول نبضة في سجل التشخيص
+  DiwanLogger.instance.info('AppLifecycle', 'تطبيق ديوان يبدأ العمل بنجاح (Milestone 1)');
+
+  FlutterError.onError = (details) {
+    DiwanErrorBoundary.reportError(details.exception, details.stack);
+  };
+
   runApp(const ProviderScope(child: DiwanApp()));
 }
 
@@ -94,6 +105,7 @@ class _DiwanRootNavigationState extends State<DiwanRootNavigation> {
   RecitationEvaluationResult? _recitationResult;
   bool _isMemorizing = false;
   bool _isGalleryOpen = false;
+  bool _isLogsOpen = false;
 
   // القصائد النموذجية الأولية المستخرجة من poems.db
   late final List<Poem> _samplePoems = [
@@ -159,6 +171,11 @@ class _DiwanRootNavigationState extends State<DiwanRootNavigation> {
   @override
   Widget build(BuildContext context) {
     final diwan = context.diwan;
+
+    // إذا كانت شاشة سجل العمليات والتشخيص مفتوحة
+    if (_isLogsOpen) {
+      return LogsScreen(onBack: () => setState(() => _isLogsOpen = false));
+    }
 
     // إذا كانت شاشة المعرض مفتوحة
     if (_isGalleryOpen) {
@@ -249,59 +266,63 @@ class _DiwanRootNavigationState extends State<DiwanRootNavigation> {
       const StatsScreen(),
       SettingsScreen(
         onOpenGallery: () => setState(() => _isGalleryOpen = true),
+        onOpenLogs: () => setState(() => _isLogsOpen = true),
       ),
     ];
 
-    return Scaffold(
-      body: screens[_currentIndex],
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: diwan.surface,
-          border: Border(top: BorderSide(color: diwan.border)),
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (idx) => setState(() => _currentIndex = idx),
-          backgroundColor: diwan.surface,
-          selectedItemColor: diwan.accentGold,
-          unselectedItemColor: diwan.textMuted,
-          selectedLabelStyle: DiwanTypography.uiBody(
-            color: diwan.accentGold,
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
+    return DiwanErrorBoundary(
+      onOpenLogs: () => setState(() => _isLogsOpen = true),
+      child: Scaffold(
+        body: screens[_currentIndex],
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            color: diwan.surface,
+            border: Border(top: BorderSide(color: diwan.border)),
           ),
-          unselectedLabelStyle: DiwanTypography.uiBody(
-            color: diwan.textMuted,
-            fontSize: 11,
+          child: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (idx) => setState(() => _currentIndex = idx),
+            backgroundColor: diwan.surface,
+            selectedItemColor: diwan.accentGold,
+            unselectedItemColor: diwan.textMuted,
+            selectedLabelStyle: DiwanTypography.uiBody(
+              color: diwan.accentGold,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+            unselectedLabelStyle: DiwanTypography.uiBody(
+              color: diwan.textMuted,
+              fontSize: 11,
+            ),
+            type: BottomNavigationBarType.fixed,
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home_outlined),
+                activeIcon: Icon(Icons.home_rounded),
+                label: 'الرئيسية',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.menu_book_outlined),
+                activeIcon: Icon(Icons.menu_book_rounded),
+                label: 'المكتبة',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.psychology_outlined),
+                activeIcon: Icon(Icons.psychology_rounded),
+                label: 'التدريب',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.insights_outlined),
+                activeIcon: Icon(Icons.insights_rounded),
+                label: 'الإحصاء',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.settings_outlined),
+                activeIcon: Icon(Icons.settings_rounded),
+                label: 'الإعدادات',
+              ),
+            ],
           ),
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home_rounded),
-              label: 'الرئيسية',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.menu_book_outlined),
-              activeIcon: Icon(Icons.menu_book_rounded),
-              label: 'المكتبة',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.psychology_outlined),
-              activeIcon: Icon(Icons.psychology_rounded),
-              label: 'التدريب',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.insights_outlined),
-              activeIcon: Icon(Icons.insights_rounded),
-              label: 'الإحصاء',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.settings_outlined),
-              activeIcon: Icon(Icons.settings_rounded),
-              label: 'الإعدادات',
-            ),
-          ],
         ),
       ),
     );
