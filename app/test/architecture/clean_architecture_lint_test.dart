@@ -35,7 +35,7 @@ void main() {
       if (!featuresDir.existsSync()) return;
 
       final violations = <String>[];
-      final dataImportRegex = RegExp(r"import\s+['\"].*\/data\/.*['\"]");
+      final dataImportRegex = RegExp(r'''import\s+['"].*/data/.*['"]''');
 
       for (final entity in featuresDir.listSync(recursive: true)) {
         if (entity is File && entity.path.endsWith('.dart')) {

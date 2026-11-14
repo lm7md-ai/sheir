@@ -4,7 +4,7 @@ import '../../core/data/models/verse.dart';
 import '../../core/nlp/recitation_alignment_engine.dart';
 import '../../core/theme/theme_extension.dart';
 import '../../core/theme/typography.dart';
-import '../../core/widgets/record_button.dart';
+import '../../design_system/record_button.dart';
 import 'controllers/recitation_controller.dart';
 
 /// شاشة أستوديو التسميع الذكي
@@ -123,7 +123,7 @@ class RecitationScreen extends ConsumerWidget {
               padding: const EdgeInsets.only(bottom: 48.0),
               child: RecordButton(
                 isRecording: state.isRecording,
-                onTap: () {
+                onToggle: () {
                   if (state.isRecording) {
                     controller.stopAndEvaluate(expectedVerse: expectedText);
                   } else {

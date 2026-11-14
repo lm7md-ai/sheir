@@ -5,13 +5,15 @@ import '../theme/theme_extension.dart';
 /// زر التسجيل النابض مع موجات صوتية حية واهتزازات لمسية (Animated Pulse Record Button)
 class RecordButton extends StatefulWidget {
   final bool isRecording;
-  final VoidCallback onToggle;
+  final VoidCallback? onToggle;
+  final VoidCallback? onTap;
   final double size;
 
   const RecordButton({
     super.key,
     required this.isRecording,
-    required this.onToggle,
+    this.onToggle,
+    this.onTap,
     this.size = 76.0,
   });
 
@@ -60,7 +62,7 @@ class _RecordButtonState extends State<RecordButton> with SingleTickerProviderSt
 
   void _handleTap() {
     HapticFeedback.mediumImpact();
-    widget.onToggle();
+    (widget.onToggle ?? widget.onTap)?.call();
   }
 
   @override
