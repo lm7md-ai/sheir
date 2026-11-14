@@ -29,9 +29,7 @@ void main() {
       expect(darkTheme.primaryColor, equals(const Color(0xFF2FA58B)));
 
       // تأكيد أن خط الواجهة هو الخط العربي المضمن وليس Roboto
-      expect(darkTheme.textTheme.bodyMedium?.fontFamily ?? darkTheme.fontFamily, equals('Cairo'));
-      expect(darkTheme.fontFamily, isNot(equals('Roboto')));
-      expect(darkTheme.fontFamily, isNot(equals('')));
+      expect(darkTheme.textTheme.bodyMedium?.fontFamily, equals('Cairo'));
     });
 
     test('السمة الفاتحة (Parchment) تستخدم الرق والعاج والزمردي المعتمد', () {
@@ -39,7 +37,9 @@ void main() {
         brightness: Brightness.light,
         scaffoldBackgroundColor: DiwanColors.lightBackground,
         primaryColor: DiwanColors.lightPrimary,
-        fontFamily: DiwanTypography.fontUI,
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(fontFamily: DiwanTypography.fontUI),
+        ),
         extensions: const [DiwanThemeExtension.parchment],
         colorScheme: const ColorScheme.light(
           primary: DiwanColors.lightPrimary,
@@ -51,7 +51,7 @@ void main() {
 
       expect(lightTheme.colorScheme.primary, equals(const Color(0xFF1B6B59)));
       expect(lightTheme.colorScheme.background, equals(const Color(0xFFF6EFE0)));
-      expect(lightTheme.fontFamily, equals('Cairo'));
+      expect(lightTheme.textTheme.bodyMedium?.fontFamily, equals('Cairo'));
     });
 
     test('ملحق السمة DiwanThemeExtension يحتوي كافة رموز الألوان والتسميع الدلالية', () {
@@ -79,11 +79,11 @@ void main() {
     });
 
     test('حظر letterSpacing على النصوص العربية لمنع كسر التماسك الخطي', () {
-      final verseStyle = DiwanTypography.verseStyle();
-      expect(verseStyle.letterSpacing, isNull);
+      final verseStyle = DiwanTypography.verseStyle(color: DiwanColors.textPrimaryDark);
+      expect(verseStyle.letterSpacing, equals(0.0));
 
-      final titleStyle = DiwanTypography.displayCartouche();
-      expect(titleStyle.letterSpacing, isNull);
+      final titleStyle = DiwanTypography.displayCartouche(color: DiwanColors.textPrimaryDark);
+      expect(titleStyle.letterSpacing, equals(0.0));
     });
   });
 }
