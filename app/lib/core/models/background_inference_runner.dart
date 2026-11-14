@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:isolate';
-import '../logs/diwan_logger.dart';
 import '../nlp/arabic_normalizer.dart';
 import '../nlp/recitation_alignment_engine.dart';
 
