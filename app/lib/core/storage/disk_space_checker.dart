@@ -25,20 +25,20 @@ class DiskSpaceChecker {
     }
 
     try {
-      final availableMb = await _channel.invokeMethod<int>(
-        'getAvailableDiskSpaceMb',
-        {'path': targetDirectory},
-      );
-      if (availableMb != null && availableMb > 0) {
-        return availableMb;
+      if (Platform.isAndroid) {
+        final availableMb = await _channel.invokeMethod<int>(
+          'getAvailableDiskSpaceMb',
+          {'path': targetDirectory},
+        );
+        if (availableMb != null && availableMb > 0) {
+          return availableMb;
+        }
       }
-    } on MissingPluginException {
-      // في بيئات الاختبار غير المتصلة بجهاز أندرويد
     } catch (e) {
       DiwanLogger.instance.warn('DiskSpaceChecker', 'Failed to call Kotlin StatFs channel: $e');
     }
 
-    // بديل احتياطي للمنصات الأخرى
+    // بديل احتياطي للمنصات الأخرى وبيئات الاختبار
     try {
       if (targetDirectory.isNotEmpty) {
         final dir = Directory(targetDirectory);

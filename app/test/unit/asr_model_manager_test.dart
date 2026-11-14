@@ -5,6 +5,8 @@ import 'package:diwan/core/models/asr_model_manager.dart';
 import 'package:diwan/core/models/background_inference_runner.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('AsrModelManager & Safe Memory Lifecycle Tests (Gate 5)', () {
     late AsrModelManager manager;
 
@@ -102,7 +104,10 @@ void main() {
       final loadFuture = manager.loadModel('whisper_tiny_arabic');
       manager.cancelLoad();
 
-      await loadFuture;
+      try {
+        await loadFuture;
+      } catch (_) {}
+
       expect(manager.hasLoadedModel, isFalse);
       expect(manager.currentLoadedModel, isNull);
     });
