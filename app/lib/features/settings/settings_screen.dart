@@ -328,6 +328,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const Divider(),
                 ListTile(
+                  leading: Icon(Icons.memory_rounded, color: diwan.primary),
+                  title: Text('حالة نموذج الذكاء الاصطناعي في الذاكرة', style: DiwanTypography.uiTitle(color: diwan.textPrimary, fontSize: 14)),
+                  subtitle: Text('استهلاك الرام المقدر: 45 MB | حظر الاستدلال على UI Isolate', style: DiwanTypography.uiBody(color: diwan.textSecondary, fontSize: 12)),
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: diwan.primary.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: diwan.primary.withOpacity(0.4)),
+                    ),
+                    child: Text(
+                      'جاهز (Ready)',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: diwan.primary),
+                    ),
+                  ),
+                ),
+                const Divider(),
+                ListTile(
                   leading: Icon(Icons.data_usage_rounded, color: diwan.accentGold),
                   title: Text('حجم خزانة الدواوين (poems.db)', style: DiwanTypography.uiTitle(color: diwan.textPrimary, fontSize: 14)),
                   subtitle: Text('مفهرسة بتقنية FTS5 فائقة السرعة للبحث اللحظي', style: DiwanTypography.uiBody(color: diwan.textSecondary, fontSize: 12)),
