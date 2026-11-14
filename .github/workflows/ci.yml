@@ -150,7 +150,7 @@ jobs:
       - name: بناء حزمة APK الموقعة لمعمارية arm64-v8a
         working-directory: app
         run: |
-          flutter build apk --target-platform android-arm64 --release --no-tree-shake-icons > build_apk_output.txt 2>&1 || {
+          flutter build apk --target-platform android-arm64 --release --no-tree-shake-icons --android-skip-build-dependency-validation > build_apk_output.txt 2>&1 || {
             grep -A 25 "\* What went wrong:" build_apk_output.txt | while IFS= read -r line; do
               echo "::error::$line"
             done
