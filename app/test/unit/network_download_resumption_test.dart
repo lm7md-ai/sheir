@@ -1,11 +1,9 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:diwan/core/errors/app_failure.dart';
 import 'package:diwan/core/logging/rotating_file_logger.dart';
-import 'package:diwan/core/logs/diwan_logger.dart';
 import 'package:diwan/core/network/resumable_downloader.dart';
 import 'package:diwan/core/storage/disk_space_checker.dart';
 
