@@ -30,6 +30,10 @@ dependencies:
   flutter_svg: ^2.0.10
   intl: ^0.19.0
 
+  # Pure Dart Core Package
+  diwan_core:
+    path: packages/diwan_core
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
