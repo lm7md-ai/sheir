@@ -1,0 +1,147 @@
+name: Diwan CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "arena/**" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  python-pipeline-tests:
+    name: اختبارات خط بيانات الشعر (Python Data Pipeline)
+    runs-on: ubuntu-latest
+    steps:
+      - name: فحص الكود (Checkout)
+        uses: actions/checkout@v4
+
+      - name: إعداد بايثون (Setup Python 3.11)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: تثبيت التبعيات (Install Dependencies)
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+
+      - name: تشغيل اختبارات FTS5 والبيانات
+        run: |
+          PYTHONPATH=. pytest data_pipeline/tests/ -v
+
+  flutter-quality-gates:
+    name: بوابات الجودة والفحص (Flutter Quality Gates)
+    needs: python-pipeline-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: فحص الكود (Checkout)
+        uses: actions/checkout@v4
+
+      - name: إعداد جافا (Setup Java 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: إعداد فلاتر (Setup Flutter)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: التخزين المؤقت لتبعيات Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: جلب الحزم (Flutter Pub Get)
+        working-directory: app
+        run: flutter pub get
+
+      - name: التحليل البرمجي الصارم (Flutter Analyze - Zero Warnings)
+        working-directory: app
+        run: flutter analyze
+
+      - name: تشغيل الاختبارات الأحادية واختبارات المكونات (Flutter Test)
+        working-directory: app
+        run: flutter test --coverage
+
+      - name: رفع تقرير التغطية
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: code-coverage-report
+          path: app/coverage/
+
+  build-release-apk:
+    name: بناء وتوقيع حزمة الأندرويد (Build Android ARM64 Release APK)
+    needs: flutter-quality-gates
+    runs-on: ubuntu-latest
+    steps:
+      - name: فحص الكود (Checkout)
+        uses: actions/checkout@v4
+
+      - name: إعداد جافا (Setup Java 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: إعداد فلاتر (Setup Flutter)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: جلب الحزم (Flutter Pub Get)
+        working-directory: app
+        run: flutter pub get
+
+      - name: استعادة وتكوين مفتاح التوقيع الدائم (Keystore Setup)
+        working-directory: app/android
+        run: |
+          if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/keystore.jks
+            echo "Keystore successfully restored from GitHub Secrets"
+          else
+            echo "Generating fallback development keystore for CI verification..."
+            keytool -genkey -v -keystore app/keystore.jks \
+              -alias diwan_key -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass diwan2026pass -keypass diwan2026pass \
+              -dname "CN=Diwan, OU=Engineering, O=Diwan, L=Riyadh, C=SA"
+          fi
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+
+      - name: بناء حزمة APK الموقعة لمعمارية arm64-v8a
+        working-directory: app
+        run: |
+          flutter build apk --target-platform android-arm64 --release
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'diwan2026pass' }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS || 'diwan_key' }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'diwan2026pass' }}
+
+      - name: أرشفة حزمة APK كملف مرفوع
+        uses: actions/upload-artifact@v4
+        with:
+          name: diwan-arm64-release-apk
+          path: app/build/app/outputs/flutter-apk/app-release.apk
+
+      - name: إنشاء إصدار GitHub تلقائي (GitHub Release)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app/build/app/outputs/flutter-apk/app-release.apk
+          generate_release_notes: true
+          draft: false
+          prerelease: false

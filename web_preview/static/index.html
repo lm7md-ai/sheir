@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ديوان — مخطوطة الشعر العربي الكلاسيكي والتسميع الذكي</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body data-theme="midnightInk">
+
+  <!-- الترويسة الرئيسية -->
+  <header class="app-header">
+    <div class="brand-section">
+      <img src="/assets/icons/diwan_logo.svg" alt="شعار ديوان" class="brand-logo">
+      <h1 class="brand-title">دِيــــوَان</h1>
+    </div>
+    <div class="header-controls">
+      <select id="themeSelector" class="theme-pill-select" onchange="setTheme(this.value)">
+        <option value="midnightInk">حبر الليل (AMOLED)</option>
+        <option value="parchment">الرَّقّ والعاج (Parchment)</option>
+        <option value="sepia">السيبيا العتيقة (Sepia)</option>
+      </select>
+      <button class="diwan-btn gold-btn" style="padding: 6px 12px; border-radius: 20px; font-size: 13px;" onclick="switchTab('gallery')">
+        المعرض
+      </button>
+    </div>
+  </header>
+
+  <!-- الحاوية الأساسية للتطبيق -->
+  <main class="app-viewport">
+
+    <!-- =========================================================================
+         [1] الشاشة الرئيسية (Home Tab)
+         ========================================================================= -->
+    <div id="tab-home" class="tab-content active">
+      <!-- بطاقة بيت اليوم -->
+      <div class="diwan-card gold-rim" style="text-align: center;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; color: var(--accent-gold); font-size: 14px; font-weight: bold;">
+          <span>★</span>
+          <span>بَيْتُ اليَوْمِ المُنْتَخَب</span>
+        </div>
+        <div class="verse-row" style="margin-bottom: 14px;">
+          <div class="hemistich sadr">أَعَزُّ مَكَانٍ فِي الدُّنَى سَرْجُ سَابِحٍ</div>
+          <img src="/assets/icons/rosette_divider.svg" alt="فاصلة" class="rosette-divider">
+          <div class="hemistich ajuz">وَخَيْرُ جَلِيسٍ فِي الزَّمَانِ كِتَابُ</div>
+        </div>
+        <div style="color: var(--text-secondary); font-size: 13px; margin-bottom: 14px;">
+          — أَبُو الطَّيِّبِ المُتَنَبِّي  |  بحر الطويل
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+          <button class="diwan-btn gold-btn" onclick="openPoem(1)">
+            اقرأ القصيدة كاملة
+          </button>
+          <button class="diwan-btn" onclick="startRecitationDemo(1)">
+            🎙 جرّب التسميع
+          </button>
+        </div>
+      </div>
+
+      <!-- بطاقة أوراد الحفظ التراكمي المستحقة (SRS) -->
+      <div class="diwan-card clickable" onclick="startMemorizationDemo(1)">
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(47, 165, 139, 0.15); border: 1.5px solid var(--primary); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 22px; font-weight: bold;">
+            ١٢
+          </div>
+          <div style="flex: 1;">
+            <div style="font-weight: bold; font-size: 15px; color: var(--text-primary);">أوراد المراجعة المستحقة اليوم</div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">١٢ بيتاً بانتظار استظهارك وفق خوارزمية FSRS</div>
+          </div>
+          <span style="color: var(--accent-gold); font-size: 20px;">❮</span>
+        </div>
+      </div>
+
+      <!-- العصور الأدبية -->
+      <div class="section-title-wrap">
+        <div class="gold-accent-bar"></div>
+        <div class="section-title">التصفح بالعصور الأدبية</div>
+      </div>
+      <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px;">
+        <span class="meta-chip gold" style="cursor: pointer;" onclick="filterLibraryByEra('الجاهلي')">العصر الجاهلي</span>
+        <span class="meta-chip gold" style="cursor: pointer;" onclick="filterLibraryByEra('العباسي')">العصر العباسي</span>
+        <span class="meta-chip gold" style="cursor: pointer;" onclick="filterLibraryByEra('الأندلسي')">العصر الأندلسي</span>
+        <span class="meta-chip gold" style="cursor: pointer;" onclick="filterLibraryByEra('الحديث')">العصر الحديث</span>
+      </div>
+
+      <!-- بحور الشعر الستة عشر -->
+      <div class="section-title-wrap">
+        <div class="gold-accent-bar"></div>
+        <div class="section-title">بحور الشعر الخليلية</div>
+      </div>
+      <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px;">
+        <span class="meta-chip primary">الطويل</span>
+        <span class="meta-chip primary">الكامل</span>
+        <span class="meta-chip primary">البسيط</span>
+        <span class="meta-chip primary">الوافر</span>
+        <span class="meta-chip primary">الخفيف</span>
+        <span class="meta-chip primary">المتقارب</span>
+      </div>
+
+      <!-- فحول الشعراء -->
+      <div class="section-title-wrap">
+        <div class="gold-accent-bar"></div>
+        <div class="section-title">أعلام فحول الشعراء</div>
+      </div>
+      <div id="poetsList">
+        <!-- يتم تحميل الشعراء ديناميكياً من قاعدة البيانات -->
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         [2] خزانة المكتبة والبحث الفوري (Library Tab)
+         ========================================================================= -->
+    <div id="tab-library" class="tab-content">
+      <div class="diwan-card" style="padding: 12px 16px;">
+        <input type="text" id="librarySearchInput" placeholder="ابحث عن بيت، شاعر، قصيدة (بدون تشكيل)..." 
+               style="width: 100%; background: transparent; border: none; outline: none; color: var(--text-primary); font-family: var(--font-ui); font-size: 15px;"
+               oninput="handleSearch(this.value)">
+      </div>
+      <div id="libraryPoemsContainer">
+        <!-- يتم ملء نتائج البحث أو القصائد ديناميكياً -->
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         [3] شاشة عرض القصيدة الكلاسيكية (Poem Viewer)
+         ========================================================================= -->
+    <div id="tab-poem" class="tab-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <button class="diwan-btn gold-btn" onclick="switchTab('library')">❮ العودة للخزانة</button>
+        <div style="display: flex; gap: 8px;">
+          <button class="diwan-btn gold-btn" onclick="adjustFontSize(1)" title="تكبير الخط">A+</button>
+          <button class="diwan-btn gold-btn" onclick="adjustFontSize(-1)" title="تصغير الخط">A-</button>
+          <button class="diwan-btn gold-btn" onclick="toggleStackedView()" id="stackedToggleBtn">عرض متوازي</button>
+        </div>
+      </div>
+
+      <div class="cartouche-banner">
+        <h2 id="poemBannerTitle" class="cartouche-title">واحرّ قلباه</h2>
+        <div id="poemBannerPoet" class="cartouche-poet">أبو الطيب المتنبي</div>
+        <div class="cartouche-chips">
+          <span id="poemChipEra" class="meta-chip primary">العصر العباسي</span>
+          <span id="poemChipMeter" class="meta-chip gold">بحر البسيط</span>
+          <span id="poemChipRawiy" class="meta-chip burgundy">الروي: الميم</span>
+        </div>
+      </div>
+
+      <div id="poemVersesList">
+        <!-- يتم ملء الأبيات الشعرية بدقة -->
+      </div>
+
+      <div style="position: sticky; bottom: 70px; background: var(--surface-elevated); padding: 12px; border-radius: 18px; border: 1px solid var(--border-gold); display: flex; gap: 12px; box-shadow: 0 -4px 16px rgba(0,0,0,0.3);">
+        <button class="diwan-btn full-width" onclick="startRecitationDemo(currentPoemId)">
+          🎙 تسميع القصيدة
+        </button>
+        <button class="diwan-btn gold-btn full-width" onclick="startMemorizationDemo(currentPoemId)">
+          🧠 تدريب الحفظ (SRS)
+        </button>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         [4] أستوديو التسميع الذكي (Recitation Screen)
+         ========================================================================= -->
+    <div id="tab-recitation" class="tab-content" style="text-align: center;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+        <button class="diwan-btn gold-btn" onclick="cancelRecitation()">إلغاء التسميع</button>
+        <span style="color: var(--accent-gold); font-size: 15px; font-weight: bold;">أستوديو التسميع والإلقاء</span>
+      </div>
+
+      <div class="diwan-card gold-rim" style="padding: 32px 20px; min-height: 180px; display: flex; align-items: center; justify-content: center;">
+        <div id="recitationVerseWords" style="font-family: var(--font-poetry); font-size: 26px; line-height: 2.2; color: var(--text-primary);">
+          <!-- الكلمات تضيء تباعاً أثناء التعرف -->
+        </div>
+      </div>
+
+      <!-- محاكاة الموجات الصوتية الحية -->
+      <canvas id="waveformCanvas" width="300" height="40" style="margin: 20px auto; display: block;"></canvas>
+
+      <div id="recitationPromptText" style="color: var(--accent-gold); font-size: 14px; margin-bottom: 10px;">
+        اضغط على اللاقط وابدأ التسميع بصوت فصيح
+      </div>
+
+      <div class="record-btn-container" id="recBtnContainer">
+        <div class="record-pulse-ring"></div>
+        <div class="record-btn" id="micBtn" onclick="toggleRecitationRecording()">
+          🎙
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         [5] صحيفة تقرير التسميع (Report Screen)
+         ========================================================================= -->
+    <div id="tab-report" class="tab-content">
+      <div style="text-align: center; margin-bottom: 12px;">
+        <h2 style="font-family: var(--font-display); color: var(--accent-gold); font-size: 24px;">صحيفة تقرير التسميع</h2>
+      </div>
+
+      <!-- عداد الدقة الدائري الأندلسي -->
+      <div class="accuracy-gauge-container">
+        <svg class="gauge-svg" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="42" fill="none" stroke="var(--border)" stroke-width="8" stroke-dasharray="210 264" stroke-dashoffset="0" stroke-linecap="round"/>
+          <circle id="gaugeProgressCircle" cx="50" cy="50" r="42" fill="none" stroke="url(#goldGrad)" stroke-width="8" stroke-dasharray="190 264" stroke-dashoffset="0" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="var(--primary)"/>
+              <stop offset="100%" stop-color="var(--accent-gold)"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="gauge-content">
+          <div id="reportAccuracyNum" class="gauge-percentage">92%</div>
+          <div id="reportRankTitle" class="gauge-rank">حَافِظٌ مُتْقِن</div>
+        </div>
+      </div>
+
+      <!-- دليل علامات التسميع -->
+      <div class="diwan-card" style="padding: 12px; margin-bottom: 16px; text-align: center;">
+        <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; font-size: 12px; font-weight: bold;">
+          <span style="color: var(--rec-correct);">✓ صحيح</span>
+          <span style="color: var(--rec-wrong); text-decoration: underline wavy var(--rec-wrong);">✕ خطأ</span>
+          <span style="color: var(--rec-hesitation); text-decoration: underline dotted var(--rec-hesitation);">⏳ تردد</span>
+          <span style="color: var(--rec-missing); text-decoration: line-through;">∅ سقطت</span>
+          <span style="color: var(--rec-extra);">+ زائدة</span>
+        </div>
+      </div>
+
+      <!-- تفصيل الكلمات والملاحظات -->
+      <div class="diwan-card gold-rim">
+        <div style="font-weight: bold; font-size: 14px; margin-bottom: 12px; color: var(--text-primary);">
+          انقر على أي كلمة لاستعراض النطق المسجل وتصحيحه:
+        </div>
+        <div id="reportTokensContainer" style="display: flex; flex-wrap: wrap; gap: 6px;">
+          <!-- يتم ملء رقاقات الكلمات الملونة -->
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px; margin-top: 20px;">
+        <button class="diwan-btn full-width" onclick="saveRecitationProgress()">
+          💾 حفظ النتيجة في التقدم
+        </button>
+        <button class="diwan-btn gold-btn full-width" onclick="startRecitationDemo(currentPoemId)">
+          ↺ أعد تسميع الأخطاء فقط
+        </button>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         [6] مختبر الحفظ التراكمي والإخفاء التدريجي (SRS / Cloze)
+         ========================================================================= -->
+    <div id="tab-memorize" class="tab-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <button class="diwan-btn gold-btn" onclick="switchTab('poem')">❮ العودة للقصيدة</button>
+        <span style="font-family: var(--font-display); color: var(--accent-gold); font-size: 20px;">مختبر الحفظ التراكمي</span>
+      </div>
+
+      <!-- خطوات الإخفاء التدريجي -->
+      <div style="display: flex; gap: 6px; overflow-x: auto; margin-bottom: 14px;">
+        <button class="diwan-btn gold-btn" onclick="setClozeMode('full')">١. قراءة تامة</button>
+        <button class="diwan-btn gold-btn" onclick="setClozeMode('rhyme')">٢. إخفاء القوافي</button>
+        <button class="diwan-btn gold-btn" onclick="setClozeMode('ajuz')">٣. إخفاء العجز</button>
+        <button class="diwan-btn gold-btn" onclick="setClozeMode('cloze')">٤. إخفاء تدريجي</button>
+      </div>
+
+      <!-- لوح الاستظهار النشط -->
+      <div class="diwan-card gold-rim" style="padding: 28px 18px; text-align: center;">
+        <div id="clozeSadrRow" style="font-family: var(--font-poetry); font-size: 24px; line-height: 2.2; margin-bottom: 12px;"></div>
+        <img src="/assets/icons/rosette_divider.svg" alt="فاصلة" class="rosette-divider" style="margin: 8px auto; display: block;">
+        <div id="clozeAjuzRow" style="font-family: var(--font-poetry); font-size: 24px; line-height: 2.2; margin-top: 12px;"></div>
+      </div>
+
+      <div style="text-align: center; margin-bottom: 18px;">
+        <button class="diwan-btn gold-btn" onclick="toggleFirstLetterHint()" id="hintBtn" style="font-size: 13px;">
+          💡 إظهار تلميح الحرف الأول
+        </button>
+      </div>
+
+      <!-- تقييمات التكرار المتباعد الأربعة -->
+      <div style="font-weight: bold; font-size: 14px; text-align: center; margin-bottom: 10px; color: var(--text-primary);">
+        ما مدى رسوخ استذكارك للبيت؟
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+        <button class="diwan-btn" style="background: rgba(224, 72, 72, 0.15); color: var(--rec-wrong); border: 1px solid var(--rec-wrong); flex-direction: column;" onclick="submitSrsRating('again')">
+          <span style="font-size: 14px;">نسيت</span>
+          <span style="font-size: 10px; opacity: 0.8;">بعد ١٠ د</span>
+        </button>
+        <button class="diwan-btn" style="background: rgba(234, 179, 8, 0.15); color: var(--rec-hesitation); border: 1px solid var(--rec-hesitation); flex-direction: column;" onclick="submitSrsRating('hard')">
+          <span style="font-size: 14px;">صعب</span>
+          <span style="font-size: 10px; opacity: 0.8;">غداً</span>
+        </button>
+        <button class="diwan-btn" style="background: rgba(47, 165, 139, 0.15); color: var(--primary); border: 1px solid var(--primary); flex-direction: column;" onclick="submitSrsRating('good')">
+          <span style="font-size: 14px;">جيد</span>
+          <span style="font-size: 10px; opacity: 0.8;">بعد ٣ أيام</span>
+        </button>
+        <button class="diwan-btn" style="background: rgba(212, 175, 106, 0.15); color: var(--accent-gold); border: 1px solid var(--accent-gold); flex-direction: column;" onclick="submitSrsRating('easy')">
+          <span style="font-size: 14px;">سهل</span>
+          <span style="font-size: 10px; opacity: 0.8;">بعد أسبوع</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         [7] سجل الإحصائيات والرتب (Stats Tab)
+         ========================================================================= -->
+    <div id="tab-stats" class="tab-content">
+      <div class="diwan-card gold-rim" style="text-align: center;">
+        <div style="font-size: 32px; margin-bottom: 6px;">🔥</div>
+        <div style="font-size: 26px; font-weight: bold; color: var(--accent-gold);">٧ أيام متتالية</div>
+        <div style="color: var(--primary); font-family: var(--font-display); font-size: 20px; margin-top: 4px;">رتبتك الأدبية: ناظمٌ مُتْقِن 👑</div>
+        <div style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">مجموع نقاط الإتقان: ٣٥٠ XP</div>
+
+        <!-- سلم الرتب -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding: 0 10px;">
+          <div style="text-align: center;"><div style="width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: white; margin: 0 auto; font-size: 12px; line-height: 24px;">✓</div><div style="font-size: 10px; margin-top: 4px;">راوٍ</div></div>
+          <span>❮</span>
+          <div style="text-align: center;"><div style="width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: white; margin: 0 auto; font-size: 12px; line-height: 24px;">✓</div><div style="font-size: 10px; margin-top: 4px;">حافظ</div></div>
+          <span>❮</span>
+          <div style="text-align: center;"><div style="width: 24px; height: 24px; border-radius: 50%; background: var(--accent-gold); color: black; margin: 0 auto; font-size: 12px; line-height: 24px; font-weight: bold;">★</div><div style="font-size: 10px; margin-top: 4px; color: var(--accent-gold); font-weight: bold;">ناظم</div></div>
+          <span>❮</span>
+          <div style="text-align: center;"><div style="width: 24px; height: 24px; border-radius: 50%; background: var(--surface-elevated); border: 1px solid var(--border); color: var(--text-muted); margin: 0 auto; font-size: 12px; line-height: 24px;">🔒</div><div style="font-size: 10px; margin-top: 4px; color: var(--text-muted);">شاعر</div></div>
+          <span>❮</span>
+          <div style="text-align: center;"><div style="width: 24px; height: 24px; border-radius: 50%; background: var(--surface-elevated); border: 1px solid var(--border); color: var(--text-muted); margin: 0 auto; font-size: 12px; line-height: 24px;">👑</div><div style="font-size: 10px; margin-top: 4px; color: var(--text-muted);">أمير الشعراء</div></div>
+        </div>
+      </div>
+
+      <div class="diwan-card">
+        <div style="font-weight: bold; font-size: 14px; margin-bottom: 12px; color: var(--accent-gold);">
+          خريطة التسميع والاستظهار اليومي (آخر 28 يوماً):
+        </div>
+        <div class="heatmap-grid" id="heatmapContainer">
+          <!-- الأيام المكتملة -->
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         [8] معرض مكونات التصميم (Design Gallery Tab)
+         ========================================================================= -->
+    <div id="tab-gallery" class="tab-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="font-family: var(--font-display); color: var(--accent-gold); font-size: 22px;">معرض منظومة التصميم (Design Gallery)</h2>
+        <button class="diwan-btn gold-btn" onclick="switchTab('home')">الرئيسية ❮</button>
+      </div>
+
+      <div class="section-title-wrap">
+        <div class="gold-accent-bar"></div>
+        <div class="section-title">١. خرطوش الترويسة المخطوطي (CartoucheHeader)</div>
+      </div>
+      <div class="cartouche-banner">
+        <div class="cartouche-title">واحرّ قلباه</div>
+        <div class="cartouche-poet">أبو الطيب المتنبي</div>
+        <div class="cartouche-chips">
+          <span class="meta-chip primary">العصر العباسي</span>
+          <span class="meta-chip gold">بحر البسيط</span>
+          <span class="meta-chip burgundy">روي الميم</span>
+        </div>
+      </div>
+
+      <div class="section-title-wrap">
+        <div class="gold-accent-bar"></div>
+        <div class="section-title">٢. شطر البيت والتنسيق الكلاسيكي (VerseTile & HemistichRow)</div>
+      </div>
+      <div class="diwan-card">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+          <div class="verse-rosette-number">١</div>
+          <span style="color: var(--accent-gold);">★ في المفضلة</span>
+        </div>
+        <div class="verse-row">
+          <div class="hemistich sadr">وَا حَرَّ قَلْبَاهُ مِمَّنْ قَلْبُهُ شَبِمُ</div>
+          <img src="/assets/icons/rosette_divider.svg" alt="فاصلة" class="rosette-divider">
+          <div class="hemistich ajuz">وَمَنْ بِجِسْمِي وَحَالِي عِنْدَهُ سَقَمُ</div>
+        </div>
+      </div>
+
+      <div class="section-title-wrap">
+        <div class="gold-accent-bar"></div>
+        <div class="section-title">٣. رقاقات حالات التسميع الخمس (WordChip)</div>
+      </div>
+      <div class="diwan-card">
+        <span class="word-chip word-correct">صحيحة ✓</span>
+        <span class="word-chip word-wrong">خاطئة ✕</span>
+        <span class="word-chip word-hesitation">مترددة ⏳</span>
+        <span class="word-chip word-missing">سقطت ∅</span>
+        <span class="word-chip word-extra">+ زائدة</span>
+      </div>
+
+      <div class="section-title-wrap">
+        <div class="gold-accent-bar"></div>
+        <div class="section-title">٤. زر اللاقط النابض (RecordButton)</div>
+      </div>
+      <div class="record-btn-container" style="margin: 10px auto;">
+        <div class="record-btn" onclick="this.classList.toggle('recording')">🎙</div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         [9] الإعدادات والخيارات (Settings Tab)
+         ========================================================================= -->
+    <div id="tab-settings" class="tab-content">
+      <div class="section-title-wrap">
+        <div class="gold-accent-bar"></div>
+        <div class="section-title">مظهر المخطوطة والسمات</div>
+      </div>
+      <div class="diwan-card">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="radio" name="settingsTheme" value="midnightInk" checked onchange="setTheme(this.value)">
+            <span>حبر الليل (Midnight Ink — Dark OLED / AMOLED)</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="radio" name="settingsTheme" value="parchment" onchange="setTheme(this.value)">
+            <span>الرَّقّ والعاج الأثري (Light Parchment)</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="radio" name="settingsTheme" value="sepia" onchange="setTheme(this.value)">
+            <span>السيبيا العتيقة (Vintage Sepia للقراءة الممتدة)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="section-title-wrap">
+        <div class="gold-accent-bar"></div>
+        <div class="section-title">معايير التسميع والتحليل اللغوي</div>
+      </div>
+      <div class="diwan-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div>
+            <div style="font-weight: bold; font-size: 14px;">تسامح مخارج الحروف واللهجات</div>
+            <div style="font-size: 11px; color: var(--text-secondary);">التسامح بين القاف والهمزة، والضاد والظاء</div>
+          </div>
+          <input type="checkbox" checked style="width: 20px; height: 20px; accent-color: var(--accent-gold);">
+        </div>
+        <hr style="border: 0; border-top: 1px solid var(--border); margin: 8px 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: bold; font-size: 14px;">تجاهل علامات التشكيل في الفحص</div>
+            <div style="font-size: 11px; color: var(--text-secondary);">مطابقة الحروف دون التشدد في الحركات الإعرابية</div>
+          </div>
+          <input type="checkbox" style="width: 20px; height: 20px; accent-color: var(--accent-gold);">
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- نافذة التفاصيل المنبثقة للكلمة (Modal Sheet) -->
+  <div class="modal-overlay" id="wordModal" onclick="closeWordModal(event)">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div style="width: 44px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px auto;"></div>
+      <h3 style="color: var(--accent-gold); font-size: 18px; margin-bottom: 12px;">تفصيل الكلمة في التسميع</h3>
+      <div style="margin-bottom: 8px;">الكلمة المتوقعة: <strong id="modalExpected" style="color: var(--text-primary); font-size: 18px; font-family: var(--font-poetry);">—</strong></div>
+      <div style="margin-bottom: 8px;">ما التقطه اللاقط: <strong id="modalHeard" style="color: var(--text-secondary);">—</strong></div>
+      <div style="margin-bottom: 18px;">التشخيص: <span id="modalNote" style="color: var(--primary);">—</span></div>
+      <button class="diwan-btn full-width" onclick="closeWordModal()">
+        🔊 استمع للفظ المرجعي الفصيح
+      </button>
+    </div>
+  </div>
+
+  <!-- شريط التنقل السفلي الثابت -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('home')" id="nav-home">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span>الرئيسية</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('library')" id="nav-library">
+      <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
+      <span>المكتبة</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('memorize')" id="nav-memorize">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+      <span>التدريب</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('stats')" id="nav-stats">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+      <span>الإحصاء</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('settings')" id="nav-settings">
+      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+      <span>الإعدادات</span>
+    </button>
+  </nav>
+
+  <script src="/app.js"></script>
+</body>
+</html>

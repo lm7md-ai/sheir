@@ -1,0 +1,58 @@
+{
+  "@@locale": "en",
+  "appTitle": "Diwan",
+  "appSubtitle": "Classical Arabic Poetry, Smart Recitation & Memorization",
+  "navHome": "Home",
+  "navLibrary": "Library",
+  "navTraining": "Training",
+  "navStats": "Stats",
+  "navSettings": "Settings",
+
+  "verseOfTheDay": "Verse of the Day",
+  "dueForReview": "Due for Review",
+  "dueCountLabel": "{count} verses ready for review",
+  "@dueCountLabel": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "startReview": "Start Review",
+  "browseByEra": "Browse by Literary Era",
+  "browseByMeter": "16 Classical Poetic Meters",
+  "topPoets": "Master Poets",
+
+  "reciteAction": "Recite Verses",
+  "memorizeAction": "Memorization Training",
+  "listenAction": "Listen to Recitation",
+  "retryMistakesOnly": "Retry Mistakes Only",
+  "saveProgress": "Save to Progress Log",
+
+  "recitationListening": "Speak clearly.. Diwan is listening",
+  "recitationTapToStop": "Tap to stop and finish recitation",
+
+  "srsAgain": "Again",
+  "srsHard": "Hard",
+  "srsGood": "Good",
+  "srsEasy": "Easy",
+
+  "accuracyScore": "Accuracy Score",
+  "rankAmir": "Prince of Poets",
+  "rankShaer": "Master Poet",
+  "rankNazim": "Accomplished Versifier",
+  "rankHafiz": "Diligent Memorizer",
+  "rankRawi": "Novice Reciter",
+
+  "emptyLibraryTitle": "This Diwan is pristine",
+  "emptyLibrarySubtitle": "Select a classical poem and begin your journey of memorization.",
+
+  "themeMidnightInk": "Midnight Ink (AMOLED)",
+  "themeParchment": "Parchment (Light)",
+  "themeSepia": "Vintage Sepia",
+
+  "settingsTypography": "Typography & Manuscript Fonts",
+  "settingsDialectTolerance": "Dialect & Pronunciation Tolerance",
+  "settingsIgnoreDiacritics": "Ignore Diacritics in Verification",
+  "settingsBackup": "Backup & Restore Progress",
+  "settingsLogs": "Diagnostics & System Logs",
+  "settingsAbout": "About Diwan"
+}
