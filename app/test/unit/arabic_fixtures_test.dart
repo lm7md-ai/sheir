@@ -26,7 +26,7 @@ void main() {
     test('اختبارات امرؤ القيس: المعلقة', () {
       const verse = 'قِفَا نَبْكِ مِنْ ذِكْرَى حَبِيبٍ وَمَنْزِلِ بِسِقْطِ اللِّوَى بَيْنَ الدَّخُولِ فَحَوْمَلِ';
       final tokens = ArabicNormalizer.tokenize(verse, keepDiacritics: false);
-      expect(tokens.length, equals(10));
+      expect(tokens.length, equals(11));
       expect(tokens.first, equals('قفا'));
       expect(tokens.last, equals('فحومل'));
 

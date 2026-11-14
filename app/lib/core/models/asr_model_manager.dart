@@ -111,7 +111,7 @@ class AsrModelManager {
       );
 
       // محاكاة تهيئة النموذج وتخصيص الذاكرة الأصلية
-      await Future.delayed(const Duration(milliseconds: 250));
+      await Future.delayed(const Duration(milliseconds: 30));
 
       _updateStatus(targetModel.copyWith(status: AsrModelStatus.ready));
       DiwanLogger.instance.info(
@@ -151,7 +151,7 @@ class AsrModelManager {
     DiwanLogger.instance.info('ModelManager', 'Unloading model $modelId from RAM...');
     
     // محاكاة تحرير الذاكرة وإغلاق الجلسة
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future.delayed(const Duration(milliseconds: 20));
 
     _updateStatus(_currentLoadedModel!.copyWith(status: AsrModelStatus.unloaded));
     _currentLoadedModel = null;
@@ -222,6 +222,7 @@ class AsrModelManager {
   void dispose() {
     _isDisposed = true;
     _cancelIdleTimer();
-    unloadCurrentModel();
+    _currentLoadedModel = null;
+    onModelStatusChanged?.call(null);
   }
 }
